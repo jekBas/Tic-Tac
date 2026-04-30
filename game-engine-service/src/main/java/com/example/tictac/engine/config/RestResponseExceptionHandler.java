@@ -1,6 +1,8 @@
-package com.example.tictac.engine.exception;
+package com.example.tictac.engine.config;
 
 import com.example.tictac.engine.dto.ErrorResponse;
+import com.example.tictac.engine.exception.GameNotFoundException;
+import com.example.tictac.engine.exception.InvalidMoveException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;

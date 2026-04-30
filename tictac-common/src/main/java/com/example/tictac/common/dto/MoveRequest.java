@@ -1,7 +1,7 @@
-package com.example.tictac.engine.dto;
+package com.example.tictac.common.dto;
 
-import com.example.tictac.engine.model.enums.Player;
-import com.example.tictac.engine.validation.PositionConstraint;
+import com.example.tictac.common.enums.Player;
+import com.example.tictac.common.validation.PositionConstraint;
 import jakarta.validation.constraints.NotNull;
 
 public record MoveRequest(

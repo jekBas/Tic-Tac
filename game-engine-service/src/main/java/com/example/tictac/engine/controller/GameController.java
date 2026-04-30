@@ -1,7 +1,8 @@
 package com.example.tictac.engine.controller;
 
-import com.example.tictac.engine.dto.GameResponse;
-import com.example.tictac.engine.dto.MoveRequest;
+import com.example.tictac.common.dto.GameStateDto;
+import com.example.tictac.common.dto.MoveRequest;
+import com.example.tictac.engine.mapping.GameStateDtoMapper;
 import com.example.tictac.engine.model.Game;
 import com.example.tictac.engine.service.GameService;
 import jakarta.validation.Valid;
@@ -27,23 +28,23 @@ public class GameController {
 	}
 
 	@PostMapping
-	public ResponseEntity<GameResponse> createGame() {
+	public ResponseEntity<GameStateDto> createGame() {
 		Game game = gameService.createGame();
 		return ResponseEntity
 				.status(HttpStatus.CREATED)
-				.body(GameResponse.from(game));
+				.body(GameStateDtoMapper.from(game));
 	}
 
 	@GetMapping("/{gameId}")
-	public ResponseEntity<GameResponse> getGame(@PathVariable String gameId) {
+	public ResponseEntity<GameStateDto> getGame(@PathVariable String gameId) {
 		Game game = gameService.getGame(gameId);
-		return ResponseEntity.ok(GameResponse.from(game));
+		return ResponseEntity.ok(GameStateDtoMapper.from(game));
 	}
 
 	@PostMapping("/{gameId}/move")
-	public ResponseEntity<GameResponse> applyMove(@PathVariable String gameId,
+	public ResponseEntity<GameStateDto> applyMove(@PathVariable String gameId,
 																								@Valid @RequestBody MoveRequest moveRequest) {
 		Game game = gameService.applyMove(gameId, moveRequest);
-		return ResponseEntity.ok(GameResponse.from(game));
+		return ResponseEntity.ok(GameStateDtoMapper.from(game));
 	}
 }

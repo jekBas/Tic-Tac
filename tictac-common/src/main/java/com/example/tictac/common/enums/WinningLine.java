@@ -1,4 +1,4 @@
-package com.example.tictac.engine.model.enums;
+package com.example.tictac.common.enums;
 
 public enum WinningLine {
 	ROW_1(0, 1, 2),

@@ -1,6 +1,6 @@
-package com.example.tictac.engine.validation;
+package com.example.tictac.common.validation;
 
-import com.example.tictac.engine.model.Game;
+import com.example.tictac.common.GameConstants;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
@@ -12,8 +12,8 @@ public class PositionConstraintValidator implements ConstraintValidator<Position
 		if (value == null) {
 			return buildViolation(context, "Position must not be null");
 		}
-		if (value < 0 || value >= Game.BOARD_SIZE) {
-			return buildViolation(context, "Position must be between 0 and " + (Game.BOARD_SIZE - 1));
+		if (value < 0 || value >= GameConstants.BOARD_SIZE) {
+			return buildViolation(context, "Position must be between 0 and " + (GameConstants.BOARD_SIZE - 1));
 		}
 		return true;
 	}

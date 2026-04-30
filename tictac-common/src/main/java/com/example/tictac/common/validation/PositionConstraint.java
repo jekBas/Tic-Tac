@@ -1,4 +1,4 @@
-package com.example.tictac.engine.validation;
+package com.example.tictac.common.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

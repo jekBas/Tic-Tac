@@ -1,6 +1,6 @@
 package com.example.tictac.engine.controller.arguments;
 
-import com.example.tictac.engine.model.Game;
+import com.example.tictac.common.GameConstants;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
@@ -19,8 +19,8 @@ public final class ApplyMoveArguments {
 					Arguments.of((Integer) null),
 					Arguments.of(-1),
 					Arguments.of(-100),
-					Arguments.of(Game.BOARD_SIZE),
-					Arguments.of(Game.BOARD_SIZE + 1),
+					Arguments.of(GameConstants.BOARD_SIZE),
+					Arguments.of(GameConstants.BOARD_SIZE + 1),
 					Arguments.of(100));
 		}
 	}
@@ -33,7 +33,7 @@ public final class ApplyMoveArguments {
 					Arguments.of(0),
 					Arguments.of(1),
 					Arguments.of(4),
-					Arguments.of(Game.BOARD_SIZE - 1));
+					Arguments.of(GameConstants.BOARD_SIZE - 1));
 		}
 	}
 }

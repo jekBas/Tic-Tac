@@ -3,12 +3,12 @@ package com.example.tictac.engine.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.example.tictac.engine.dto.MoveRequest;
+import com.example.tictac.common.dto.MoveRequest;
 import com.example.tictac.engine.exception.GameNotFoundException;
 import com.example.tictac.engine.exception.InvalidMoveException;
 import com.example.tictac.engine.model.Game;
-import com.example.tictac.engine.model.enums.GameStatus;
-import com.example.tictac.engine.model.enums.Player;
+import com.example.tictac.common.enums.GameStatus;
+import com.example.tictac.common.enums.Player;
 import com.example.tictac.engine.repository.GameRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,7 +91,7 @@ class GameServiceTest {
 
 		assertThat(finished.getStatus()).isEqualTo(GameStatus.X_WON);
 		assertThat(finished.getWinner()).isEqualTo(Player.X);
-		assertThat(finished.getNextPlayer()).isEqualTo(Player.X);
+		assertThat(finished.getNextPlayer()).isNull();
 	}
 
 	@Test
@@ -110,6 +110,7 @@ class GameServiceTest {
 
 		assertThat(finished.getStatus()).isEqualTo(GameStatus.DRAW);
 		assertThat(finished.getWinner()).isNull();
+		assertThat(finished.getNextPlayer()).isNull();
 	}
 
 	@Test

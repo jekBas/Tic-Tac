@@ -1,4 +1,4 @@
-package com.example.tictac.engine.model.enums;
+package com.example.tictac.common.enums;
 
 public enum GameStatus {
 	NEW,
@@ -12,5 +12,9 @@ public enum GameStatus {
 			case X -> X_WON;
 			case O -> O_WON;
 		};
+	}
+
+	public boolean isTerminal() {
+		return this == X_WON || this == O_WON || this == DRAW;
 	}
 }

@@ -1,12 +1,12 @@
 package com.example.tictac.engine.service;
 
-import com.example.tictac.engine.dto.MoveRequest;
+import com.example.tictac.common.dto.MoveRequest;
 import com.example.tictac.engine.exception.GameNotFoundException;
 import com.example.tictac.engine.exception.InvalidMoveException;
 import com.example.tictac.engine.model.Game;
-import com.example.tictac.engine.model.enums.GameStatus;
-import com.example.tictac.engine.model.enums.Player;
-import com.example.tictac.engine.model.enums.WinningLine;
+import com.example.tictac.common.enums.GameStatus;
+import com.example.tictac.common.enums.Player;
+import com.example.tictac.common.enums.WinningLine;
 import com.example.tictac.engine.repository.GameRepository;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
@@ -66,8 +66,10 @@ public class GameService {
 		if (isWinningMove(board, player)) {
 			game.setStatus(GameStatus.wonBy(player));
 			game.setWinner(player);
+			game.setNextPlayer(null);
 		} else if (isBoardFull(board)) {
 			game.setStatus(GameStatus.DRAW);
+			game.setNextPlayer(null);
 		} else {
 			game.setStatus(GameStatus.IN_PROGRESS);
 			game.setNextPlayer(player.opposite());

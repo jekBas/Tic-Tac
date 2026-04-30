@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew :game-engine-service:test --tests \"com.example.tictac.engine.service.GameServiceTest\")",
+      "Bash(./gradlew build *)",
+      "Bash(git stash *)",
+      "Bash(./gradlew :game-session-service:test)",
+      "Bash(./gradlew :tictac-common:compileJava :game-engine-service:test :game-session-service:compileJava :game-session-service:compileTestJava)",
+      "Bash(./gradlew :tictac-common:compileJava :game-engine-service:compileJava :game-session-service:compileJava :game-session-service:compileTestJava)",
+      "Bash(./gradlew :game-engine-service:compileJava :game-engine-service:test --tests \"com.example.tictac.engine.service.*\")",
+      "Bash(./gradlew projects *)",
+      "Bash(./gradlew compileJava *)"
+    ]
+  }
+}

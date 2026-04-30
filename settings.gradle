@@ -5,6 +5,7 @@ pluginManagement {
 	}
 }
 rootProject.name = 'TicTac'
+include 'tictac-common'
 include 'game-engine-service'
 include 'game-session-service'
 include 'ui'

@@ -1,15 +1,14 @@
 package com.example.tictac.engine.model;
 
-import com.example.tictac.engine.model.enums.GameStatus;
-import com.example.tictac.engine.model.enums.Player;
+import com.example.tictac.common.GameConstants;
+import com.example.tictac.common.enums.GameStatus;
+import com.example.tictac.common.enums.Player;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Game {
 
-	public static final int BOARD_SIZE = 9;
-
 	private final String gameId;
-	private final Player[] board = new Player[BOARD_SIZE];
+	private final Player[] board = new Player[GameConstants.BOARD_SIZE];
 	private GameStatus status;
 	private Player winner;
 	private Player nextPlayer;
@@ -59,8 +58,6 @@ public class Game {
 	}
 
 	public boolean isTerminal() {
-		return this.status == GameStatus.O_WON
-				|| this.status == GameStatus.X_WON
-				|| this.status == GameStatus.DRAW;
+		return status != null && status.isTerminal();
 	}
 }

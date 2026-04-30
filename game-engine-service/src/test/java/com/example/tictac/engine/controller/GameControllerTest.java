@@ -14,12 +14,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.tictac.engine.controller.arguments.ApplyMoveArguments;
-import com.example.tictac.engine.dto.MoveRequest;
+import com.example.tictac.common.dto.MoveRequest;
 import com.example.tictac.engine.exception.GameNotFoundException;
 import com.example.tictac.engine.exception.InvalidMoveException;
+import com.example.tictac.common.GameConstants;
 import com.example.tictac.engine.model.Game;
-import com.example.tictac.engine.model.enums.GameStatus;
-import com.example.tictac.engine.model.enums.Player;
+import com.example.tictac.common.enums.GameStatus;
+import com.example.tictac.common.enums.Player;
 import com.example.tictac.engine.service.GameService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matcher;
@@ -61,7 +62,7 @@ class GameControllerTest {
 				.andExpect(jsonPath("$.status", is(GameStatus.NEW.name())))
 				.andExpect(jsonPath("$.winner").value(nullValue()))
 				.andExpect(jsonPath("$.nextPlayer").value(nullValue()))
-				.andExpect(jsonPath("$.board", hasSize(Game.BOARD_SIZE)));
+				.andExpect(jsonPath("$.board", hasSize(GameConstants.BOARD_SIZE)));
 	}
 
 	@Test

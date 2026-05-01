@@ -89,7 +89,7 @@ class SessionIntegrationTest extends BaseSessionIntegrationTest {
 
 			assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY);
 			assertThat(sessionRepository.findById("any")).isEmpty();
-			gameEngine.verifyCreateGameCalled(1);
+			gameEngine.verifyCreateGameCalled(3);
 		}
 	}
 

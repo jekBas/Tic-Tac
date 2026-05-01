@@ -1,6 +1,7 @@
 package com.example.tictac.session.client;
 
 import com.example.tictac.session.exception.GameEngineCommunicationException;
+import com.example.tictac.session.exception.GameEngineTransientException;
 import java.io.IOException;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatusCode;
@@ -28,9 +29,14 @@ public abstract class RestClientBase {
 		} catch (GameEngineCommunicationException ex) {
 			throw ex;
 		} catch (ResourceAccessException ex) {
-			throw new GameEngineCommunicationException(
+			throw new GameEngineTransientException(
 					serviceName() + " is unreachable while calling " + description + ": " + ex.getMessage(), ex);
 		} catch (RestClientResponseException ex) {
+			if (ex.getStatusCode().is5xxServerError()) {
+				throw new GameEngineTransientException(
+						serviceName() + " returned " + ex.getStatusCode().value()
+								+ " while calling " + description + ": " + ex.getResponseBodyAsString(), ex);
+			}
 			throw new GameEngineCommunicationException(
 					serviceName() + " returned " + ex.getStatusCode().value()
 							+ " while calling " + description + ": " + ex.getResponseBodyAsString(), ex);
@@ -43,8 +49,11 @@ public abstract class RestClientBase {
 	protected void onErrorResponse(HttpRequest request, ClientHttpResponse response) throws IOException {
 		HttpStatusCode status = response.getStatusCode();
 		String body = new String(response.getBody().readAllBytes());
-		throw new GameEngineCommunicationException(
-				serviceName() + " returned " + status.value() + (body.isBlank() ? "" : ": " + body));
+		String message = serviceName() + " returned " + status.value() + (body.isBlank() ? "" : ": " + body);
+		if (status.is5xxServerError()) {
+			throw new GameEngineTransientException(message);
+		}
+		throw new GameEngineCommunicationException(message);
 	}
 
 	protected abstract String serviceName();

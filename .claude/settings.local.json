@@ -20,7 +20,8 @@
       "Bash(npm run *)",
       "Bash(npm install *)",
       "Bash(./gradlew :game-engine-service:test :game-session-service:test)",
-      "Bash(./gradlew :game-engine-service:test :game-session-service:test --rerun)"
+      "Bash(./gradlew :game-engine-service:test :game-session-service:test --rerun)",
+      "Bash(./gradlew :game-session-service:compileJava)"
     ]
   }
 }

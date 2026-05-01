@@ -1,5 +1,7 @@
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springframework.retry:spring-retry'
+	implementation 'org.springframework:spring-aspects'
 	testImplementation 'org.wiremock:wiremock-standalone:3.13.1'
 	testImplementation 'org.awaitility:awaitility:4.2.2'
 	testImplementation 'org.apache.commons:commons-text:1.12.0'

@@ -9,6 +9,7 @@ interface StatusPanelProps {
 
 const SESSION_LABELS: Record<SessionStatus, string> = {
   CREATED: 'Created',
+  IN_PROGRESS: 'In Progress',
   SIMULATING: 'Simulating...',
   COMPLETED: 'Completed',
   FAILED: 'Failed',

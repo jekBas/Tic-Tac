@@ -17,7 +17,7 @@ public final class GameStateDtoMapper {
 				.map(cell -> cell == null ? null : cell.name())
 				.toList();
 
-		Player nextPlayer = game.getStatus() == GameStatus.IN_PROGRESS ? game.getNextPlayer() : null;
+		Player nextPlayer = game.getStatus().isTerminal() ? null : game.getNextPlayer();
 
 		return new GameStateDto(
 				game.getGameId(),

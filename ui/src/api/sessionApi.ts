@@ -1,4 +1,4 @@
-import { SessionResponse } from '../types/session';
+import { Player, SessionResponse } from '../types/session';
 
 const BASE_URL = import.meta.env.VITE_SESSION_API_BASE_URL || '';
 
@@ -33,4 +33,18 @@ export function simulateSession(sessionId: string): Promise<SessionResponse> {
 
 export function getSession(sessionId: string): Promise<SessionResponse> {
   return request<SessionResponse>(`${BASE_URL}/sessions/${sessionId}`);
+}
+
+export function createPlayerVsComputerSession(humanPlayer: Player): Promise<SessionResponse> {
+  return request<SessionResponse>(`${BASE_URL}/sessions/player-vs-computer`, {
+    method: 'POST',
+    body: JSON.stringify({ 'human-player': humanPlayer }),
+  });
+}
+
+export function submitHumanMove(sessionId: string, position: number): Promise<SessionResponse> {
+  return request<SessionResponse>(`${BASE_URL}/sessions/${sessionId}/human-move`, {
+    method: 'POST',
+    body: JSON.stringify({ position }),
+  });
 }

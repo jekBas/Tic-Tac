@@ -2,7 +2,9 @@ export type Player = 'X' | 'O';
 
 export type GameStatus = 'NEW' | 'IN_PROGRESS' | 'X_WON' | 'O_WON' | 'DRAW';
 
-export type SessionStatus = 'CREATED' | 'SIMULATING' | 'COMPLETED' | 'FAILED';
+export type SessionStatus = 'CREATED' | 'IN_PROGRESS' | 'SIMULATING' | 'COMPLETED' | 'FAILED';
+
+export type SessionMode = 'SIMULATION' | 'PLAYER_VS_COMPUTER';
 
 export type CellValue = 'X' | 'O' | null;
 
@@ -27,6 +29,8 @@ export interface SessionResponse {
   'session-id': string;
   'game-id': string | null;
   status: SessionStatus;
+  mode: SessionMode | null;
+  'human-player': Player | null;
   'current-game-state': GameState | null;
   'move-history': MoveRecord[];
   'created-at': string;

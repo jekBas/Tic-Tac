@@ -7,7 +7,6 @@ import com.example.tictac.session.repository.SessionRepository;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.util.List;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,11 +49,12 @@ public abstract class BaseSessionIntegrationTest {
 		registry.add("session.simulation.move-delay", () -> "0ms");
 	}
 
-	@AfterAll
-	static void stopWireMock() {
-		if (GAME_ENGINE_MOCK.isRunning()) {
-			GAME_ENGINE_MOCK.stop();
-		}
+	static {
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			if (GAME_ENGINE_MOCK.isRunning()) {
+				GAME_ENGINE_MOCK.stop();
+			}
+		}));
 	}
 
 	@BeforeEach

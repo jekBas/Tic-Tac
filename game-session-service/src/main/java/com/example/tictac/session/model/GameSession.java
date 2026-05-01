@@ -1,6 +1,8 @@
 package com.example.tictac.session.model;
 
 import com.example.tictac.common.dto.GameStateDto;
+import com.example.tictac.common.enums.Player;
+import com.example.tictac.session.model.enums.SessionMode;
 import com.example.tictac.session.model.enums.SessionStatus;
 import java.time.Instant;
 import java.util.Collections;
@@ -24,6 +26,8 @@ public class GameSession {
 	private final Instant createdAt;
 	private final List<MoveRecord> moveHistory = new CopyOnWriteArrayList<>();
 	private final ReentrantLock lock = new ReentrantLock();
+	private final SessionMode mode;
+	private final Player humanPlayer;
 
 	private volatile SessionStatus status;
 	private volatile GameStateDto currentGameState;
@@ -32,8 +36,17 @@ public class GameSession {
 
 	public GameSession(String sessionId,
 										 String gameId) {
+		this(sessionId, gameId, SessionMode.SIMULATION, null);
+	}
+
+	public GameSession(String sessionId,
+										 String gameId,
+										 SessionMode mode,
+										 Player humanPlayer) {
 		this.sessionId = sessionId;
 		this.gameId = gameId;
+		this.mode = mode;
+		this.humanPlayer = humanPlayer;
 		this.status = SessionStatus.CREATED;
 		Instant now = Instant.now();
 		this.createdAt = now;
@@ -94,6 +107,14 @@ public class GameSession {
 	public void setFailureReason(String failureReason) {
 		this.failureReason = failureReason;
 		touch();
+	}
+
+	public SessionMode getMode() {
+		return mode;
+	}
+
+	public Player getHumanPlayer() {
+		return humanPlayer;
 	}
 
 	public ReentrantLock lock() {

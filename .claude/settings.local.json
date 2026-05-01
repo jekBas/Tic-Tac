@@ -21,7 +21,12 @@
       "Bash(npm install *)",
       "Bash(./gradlew :game-engine-service:test :game-session-service:test)",
       "Bash(./gradlew :game-engine-service:test :game-session-service:test --rerun)",
-      "Bash(./gradlew :game-session-service:compileJava)"
+      "Bash(./gradlew :game-session-service:compileJava)",
+      "Bash(./gradlew test *)",
+      "Bash(./gradlew :game-session-service:clean :game-session-service:test)",
+      "Bash(./gradlew :game-session-service:clean :game-session-service:test --tests \"com.example.tictac.session.integration.SessionIntegrationTest\")",
+      "Bash(./gradlew clean *)",
+      "Bash(./gradlew :game-engine-service:test)"
     ]
   }
 }

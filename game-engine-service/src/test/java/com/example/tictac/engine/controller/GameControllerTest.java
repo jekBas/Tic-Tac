@@ -61,7 +61,7 @@ class GameControllerTest {
 				.andExpect(jsonPath("$['game-id']", is(GAME_ID)))
 				.andExpect(jsonPath("$.status", is(GameStatus.NEW.name())))
 				.andExpect(jsonPath("$.winner").value(nullValue()))
-				.andExpect(jsonPath("$['next-player']").value(nullValue()))
+				.andExpect(jsonPath("$['next-player']", is(Player.X.name())))
 				.andExpect(jsonPath("$.board", hasSize(GameConstants.BOARD_SIZE)));
 	}
 

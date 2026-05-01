@@ -12,6 +12,7 @@ import com.example.tictac.session.exception.SimulationAlreadyRunningException;
 import com.example.tictac.session.model.GameSession;
 import com.example.tictac.session.model.MoveRecord;
 import com.example.tictac.common.enums.Player;
+import com.example.tictac.session.model.enums.SessionMode;
 import com.example.tictac.session.model.enums.SessionStatus;
 import com.example.tictac.session.repository.SessionRepository;
 import java.time.Duration;
@@ -99,6 +100,89 @@ public class SessionService {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	public GameSession createPlayerVsComputerSession(Player humanPlayer) {
+		String sessionId = UUID.randomUUID().toString();
+		GameStateDto initialState = gameEngineClient.createGame();
+		GameSession session = new GameSession(sessionId, initialState.gameId(),
+				SessionMode.PLAYER_VS_COMPUTER, humanPlayer);
+		session.setCurrentGameState(initialState);
+		session.setStatus(SessionStatus.IN_PROGRESS);
+		sessionRepository.save(session);
+		log.info("Created player-vs-computer session {} (gameId={}, human={})",
+				sessionId, session.getGameId(), humanPlayer);
+
+		if (humanPlayer == Player.O) {
+			performComputerMove(session);
+			sessionRepository.save(session);
+		}
+		return session;
+	}
+
+	public GameSession humanMove(String sessionId, int position) {
+		GameSession session = getSession(sessionId);
+
+		if (session.getMode() != SessionMode.PLAYER_VS_COMPUTER) {
+			throw new InvalidSessionStateException(
+					"Session " + sessionId + " is not a player-vs-computer session");
+		}
+		if (session.getStatus() == SessionStatus.COMPLETED) {
+			throw new InvalidSessionStateException(
+					"Session " + sessionId + " is already completed");
+		}
+		if (session.getStatus() == SessionStatus.FAILED) {
+			throw new InvalidSessionStateException(
+					"Session " + sessionId + " is in FAILED state");
+		}
+
+		GameStateDto currentState = session.getCurrentGameState();
+		Player nextPlayer = currentState != null && currentState.nextPlayer() != null
+				? currentState.nextPlayer() : Player.X;
+		if (nextPlayer != session.getHumanPlayer()) {
+			throw new InvalidSessionStateException("It is not your turn");
+		}
+
+		GameStateDto afterHuman = gameEngineClient.applyMove(
+				session.getGameId(), new MoveRequest(session.getHumanPlayer(), position));
+
+		session.setCurrentGameState(afterHuman);
+		session.addMove(new MoveRecord(
+				session.nextMoveNumber(),
+				session.getHumanPlayer(),
+				position,
+				afterHuman.status(),
+				afterHuman.board(),
+				Instant.now()));
+		eventPublisher.publishUpdate(session);
+
+		if (!afterHuman.status().isTerminal()) {
+			performComputerMove(session);
+		}
+
+		if (session.getCurrentGameState().status().isTerminal()) {
+			session.setStatus(SessionStatus.COMPLETED);
+		}
+
+		sessionRepository.save(session);
+		eventPublisher.publishUpdate(session);
+		return session;
+	}
+
+	private void performComputerMove(GameSession session) {
+		GameStateDto state = session.getCurrentGameState();
+		Player computerPlayer = session.getHumanPlayer().opposite();
+		int computerPosition = simulationStrategy.chooseMove(state.board(), computerPlayer);
+		GameStateDto afterComputer = gameEngineClient.applyMove(
+				session.getGameId(), new MoveRequest(computerPlayer, computerPosition));
+		session.setCurrentGameState(afterComputer);
+		session.addMove(new MoveRecord(
+				session.nextMoveNumber(),
+				computerPlayer,
+				computerPosition,
+				afterComputer.status(),
+				afterComputer.board(),
+				Instant.now()));
 	}
 
 	private GameSession simulateLocked(GameSession session) {

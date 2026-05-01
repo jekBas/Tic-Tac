@@ -2,6 +2,8 @@
   "session-id": null,
   "game-id": "${gameId}",
   "status": "COMPLETED",
+  "mode": "SIMULATION",
+  "human-player": null,
   "current-game-state": {
     "game-id": "${gameId}",
     "board": ["O", "O", "X", "X", "X", "O", "O", "X", "X"],

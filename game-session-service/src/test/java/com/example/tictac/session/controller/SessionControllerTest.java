@@ -2,6 +2,7 @@ package com.example.tictac.session.controller;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,6 +19,7 @@ import com.example.tictac.session.exception.SessionNotFoundException;
 import com.example.tictac.session.exception.SimulationAlreadyRunningException;
 import com.example.tictac.session.model.GameSession;
 import com.example.tictac.session.model.MoveRecord;
+import com.example.tictac.session.model.enums.SessionMode;
 import com.example.tictac.session.model.enums.SessionStatus;
 import com.example.tictac.session.service.SessionService;
 import java.time.Instant;
@@ -29,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -143,6 +146,64 @@ class SessionControllerTest {
 				containsString("Connection refused"));
 	}
 
+	@Test
+	void createPlayerVsComputerReturnsCreatedWithSession() throws Exception {
+		GameSession session = createPvcSession(Player.X);
+		given(sessionService.createPlayerVsComputerSession(Player.X)).willReturn(session);
+
+		mockMvc.perform(post("/sessions/player-vs-computer")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"human-player\":\"X\"}"))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$['session-id']", is(SESSION_ID)))
+				.andExpect(jsonPath("$.mode", is("PLAYER_VS_COMPUTER")))
+				.andExpect(jsonPath("$['human-player']", is("X")))
+				.andExpect(jsonPath("$.status", is("IN_PROGRESS")));
+	}
+
+	@Test
+	void createPlayerVsComputerReturnsBadRequestWhenHumanPlayerMissing() throws Exception {
+		mockMvc.perform(post("/sessions/player-vs-computer")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{}"))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void humanMoveReturnsOkWithUpdatedSession() throws Exception {
+		GameSession session = createPvcSessionAfterMove();
+		given(sessionService.humanMove(SESSION_ID, 4)).willReturn(session);
+
+		mockMvc.perform(post("/sessions/{sessionId}/human-move", SESSION_ID)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"position\":4}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$['session-id']", is(SESSION_ID)))
+				.andExpect(jsonPath("$['move-history']", hasSize(1)));
+	}
+
+	@Test
+	void humanMoveReturnsConflictWhenNotPlayerTurn() throws Exception {
+		given(sessionService.humanMove(SESSION_ID, 0))
+				.willThrow(new InvalidSessionStateException("It is not your turn"));
+
+		ResultActions result = mockMvc.perform(post("/sessions/{sessionId}/human-move", SESSION_ID)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"position\":0}"))
+				.andExpect(status().isConflict());
+
+		expectFullErrorResponse(result, HttpStatus.CONFLICT,
+				SESSION_PATH + "/human-move", containsString("not your turn"));
+	}
+
+	@Test
+	void humanMoveReturnsBadRequestWhenPositionInvalid() throws Exception {
+		mockMvc.perform(post("/sessions/{sessionId}/human-move", SESSION_ID)
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"position\":9}"))
+				.andExpect(status().isBadRequest());
+	}
+
 	private static GameSession createTestSession() {
 		GameStateDto initialState = new GameStateDto(
 				GAME_ID,
@@ -164,6 +225,28 @@ class SessionControllerTest {
 		session.setCurrentGameState(finalState);
 		session.addMove(new MoveRecord(1, Player.X, 4, GameStatus.IN_PROGRESS,
 				List.of("", "", "", "", "X", "", "", "", ""), Instant.now()));
+		return session;
+	}
+
+	private static GameSession createPvcSession(Player humanPlayer) {
+		GameStateDto initialState = new GameStateDto(
+				GAME_ID, Collections.nCopies(9, (String) null), GameStatus.NEW, null, Player.X);
+		GameSession session = new GameSession(SESSION_ID, GAME_ID,
+				SessionMode.PLAYER_VS_COMPUTER, humanPlayer);
+		session.setCurrentGameState(initialState);
+		session.setStatus(SessionStatus.IN_PROGRESS);
+		return session;
+	}
+
+	private static GameSession createPvcSessionAfterMove() {
+		List<String> board = Arrays.asList(null, null, null, null, "X", null, null, null, null);
+		GameStateDto state = new GameStateDto(
+				GAME_ID, board, GameStatus.IN_PROGRESS, null, Player.O);
+		GameSession session = new GameSession(SESSION_ID, GAME_ID,
+				SessionMode.PLAYER_VS_COMPUTER, Player.X);
+		session.setCurrentGameState(state);
+		session.setStatus(SessionStatus.IN_PROGRESS);
+		session.addMove(new MoveRecord(1, Player.X, 4, GameStatus.IN_PROGRESS, board, Instant.now()));
 		return session;
 	}
 

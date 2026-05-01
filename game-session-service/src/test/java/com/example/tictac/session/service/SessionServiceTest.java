@@ -50,6 +50,9 @@ class SessionServiceTest {
 	@Mock
 	private SimulationProperties simulationProperties;
 
+	@Mock
+	private SessionEventPublisher eventPublisher;
+
 	@InjectMocks
 	private SessionService sessionService;
 

@@ -1,91 +1,91 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createSession, simulateSession } from './api/sessionApi';
+import { subscribeToSession } from './api/sessionSocket';
 import { Board } from './components/Board';
 import { ErrorMessage } from './components/ErrorMessage';
 import { MoveHistory } from './components/MoveHistory';
 import { StatusPanel } from './components/StatusPanel';
-import { CellValue, MoveRecord, SessionResponse, SessionStatus } from './types/session';
+import { CellValue, GameState, MoveRecord, SessionEvent, SessionStatus } from './types/session';
 
 const EMPTY_BOARD: CellValue[] = Array(9).fill(null);
-const REPLAY_DELAY_MS = 600;
 
 export function App() {
-  const [session, setSession] = useState<SessionResponse | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionStatus, setSessionStatus] = useState<SessionStatus>('CREATED');
+  const [gameState, setGameState] = useState<GameState | null>(null);
   const [displayBoard, setDisplayBoard] = useState<CellValue[]>(EMPTY_BOARD);
+  const [moves, setMoves] = useState<MoveRecord[]>([]);
   const [currentMoveIndex, setCurrentMoveIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
-  const [isReplaying, setIsReplaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const replayTimer = useRef<number | null>(null);
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
-  const clearReplayTimer = useCallback(() => {
-    if (replayTimer.current !== null) {
-      clearTimeout(replayTimer.current);
-      replayTimer.current = null;
+  const cleanup = useCallback(() => {
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current();
+      unsubscribeRef.current = null;
     }
   }, []);
 
   useEffect(() => {
-    return clearReplayTimer;
-  }, [clearReplayTimer]);
+    return cleanup;
+  }, [cleanup]);
 
-  function replayMoves(moves: MoveRecord[]) {
-    if (moves.length === 0) return;
+  function handleSessionEvent(event: SessionEvent) {
+    setSessionStatus(event['session-status']);
+    setGameState(event['current-game-state']);
+    setMoves(event['move-history']);
 
-    setIsReplaying(true);
-    setDisplayBoard(EMPTY_BOARD);
-    setCurrentMoveIndex(-1);
-
-    let step = 0;
-
-    function nextStep() {
-      if (step >= moves.length) {
-        setIsReplaying(false);
-        return;
-      }
-
-      setDisplayBoard(moves[step]['board-after-move']);
-      setCurrentMoveIndex(step);
-      step++;
-      replayTimer.current = window.setTimeout(nextStep, REPLAY_DELAY_MS);
+    if (event['current-game-state']) {
+      setDisplayBoard(event['current-game-state'].board);
     }
 
-    replayTimer.current = window.setTimeout(nextStep, REPLAY_DELAY_MS);
+    if (event['move-history'].length > 0) {
+      setCurrentMoveIndex(event['move-history'].length - 1);
+    }
+
+    if (event['session-status'] === 'COMPLETED' || event['session-status'] === 'FAILED') {
+      setIsLoading(false);
+      if (event['failure-reason']) {
+        setError(event['failure-reason']);
+      }
+    }
   }
 
   async function handleStartSimulation() {
     setError(null);
-    setSession(null);
+    setSessionId(null);
+    setSessionStatus('CREATED');
+    setGameState(null);
     setDisplayBoard(EMPTY_BOARD);
+    setMoves([]);
     setCurrentMoveIndex(-1);
     setIsLoading(true);
-    clearReplayTimer();
-    setIsReplaying(false);
+    cleanup();
 
     try {
       const created = await createSession();
-      setSession(created);
+      const id = created['session-id'];
+      setSessionId(id);
+      setSessionStatus(created.status);
 
-      const simulated = await simulateSession(created['session-id']);
-      setSession(simulated);
+      unsubscribeRef.current = subscribeToSession(
+        id,
+        handleSessionEvent,
+        (wsError) => setError(wsError),
+      );
 
-      const moves = simulated['move-history'];
-      if (moves && moves.length > 0) {
-        replayMoves(moves);
-      } else if (simulated['current-game-state']) {
-        setDisplayBoard(simulated['current-game-state'].board);
-      }
+      simulateSession(id).catch((err) => {
+        const message = err instanceof Error ? err.message : 'Simulation request failed';
+        setError(message);
+        setIsLoading(false);
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(message);
-    } finally {
       setIsLoading(false);
     }
   }
-
-  const sessionStatus: SessionStatus = session?.status ?? 'CREATED';
-  const gameState = session?.['current-game-state'] ?? null;
-  const moves = session?.['move-history'] ?? [];
 
   return (
     <div className="app">
@@ -94,14 +94,14 @@ export function App() {
       <button
         className="start-button"
         onClick={handleStartSimulation}
-        disabled={isLoading || isReplaying}
+        disabled={isLoading}
       >
         {isLoading ? 'Simulating...' : 'Start Simulation'}
       </button>
 
       {error && <ErrorMessage message={error} onDismiss={() => setError(null)} />}
 
-      {session && (
+      {sessionId && (
         <>
           <StatusPanel
             sessionStatus={sessionStatus}

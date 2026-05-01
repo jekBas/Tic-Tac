@@ -33,3 +33,13 @@ export interface SessionResponse {
   'updated-at': string;
   'failure-reason': string | null;
 }
+
+export interface SessionEvent {
+  'session-id': string;
+  'game-id': string | null;
+  'session-status': SessionStatus;
+  'current-game-state': GameState | null;
+  'latest-move': MoveRecord | null;
+  'move-history': MoveRecord[];
+  'failure-reason': string | null;
+}

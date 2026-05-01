@@ -38,15 +38,18 @@ public class SessionService {
 	private final GameEngineClient gameEngineClient;
 	private final SimulationStrategy simulationStrategy;
 	private final SimulationProperties simulationProperties;
+	private final SessionEventPublisher eventPublisher;
 
 	public SessionService(SessionRepository sessionRepository,
 												GameEngineClient gameEngineClient,
 												SimulationStrategy simulationStrategy,
-												SimulationProperties simulationProperties) {
+												SimulationProperties simulationProperties,
+												SessionEventPublisher eventPublisher) {
 		this.sessionRepository = sessionRepository;
 		this.gameEngineClient = gameEngineClient;
 		this.simulationStrategy = simulationStrategy;
 		this.simulationProperties = simulationProperties;
+		this.eventPublisher = eventPublisher;
 	}
 
 	/**
@@ -100,26 +103,28 @@ public class SessionService {
 
 	private GameSession simulateLocked(GameSession session) {
 		session.setStatus(SessionStatus.SIMULATING);
+		eventPublisher.publishUpdate(session);
 
 		try {
 			runSimulationLoop(session);
 			session.setStatus(SessionStatus.COMPLETED);
+			eventPublisher.publishUpdate(session);
 			log.info("Session {} completed with status {}",
 					session.getSessionId(),
 					session.getCurrentGameState() != null ? session.getCurrentGameState().status() : "unknown");
 		} catch (GameEngineCommunicationException ex) {
 			session.setFailureReason(ex.getMessage());
 			session.setStatus(SessionStatus.FAILED);
+			eventPublisher.publishUpdate(session);
 			log.warn("Session {} failed: {}", session.getSessionId(), ex.getMessage());
 			throw ex;
 		} catch (RuntimeException ex) {
 			session.setFailureReason(ex.getMessage());
 			session.setStatus(SessionStatus.FAILED);
+			eventPublisher.publishUpdate(session);
 			log.warn("Session {} failed unexpectedly: {}", session.getSessionId(), ex.getMessage());
 			throw ex;
 		} finally {
-			// Not strictly necessary with the current in-memory ConcurrentHashMap repository,
-			// but ensures correctness if the repository is replaced with a persistent store in the future.
 			sessionRepository.save(session);
 		}
 		return session;
@@ -154,6 +159,7 @@ public class SessionService {
 					engineState.status(),
 					engineState.board(),
 					Instant.now()));
+			eventPublisher.publishUpdate(session);
 
 			if (engineState.status() != null && engineState.status().isTerminal()) {
 				return;

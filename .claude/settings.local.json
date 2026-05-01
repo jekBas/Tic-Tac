@@ -17,7 +17,10 @@
       "Bash(nvm list *)",
       "Bash(/opt/homebrew/bin/node *)",
       "Bash(PATH=\"/opt/homebrew/bin:$PATH\" npm run *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(npm install *)",
+      "Bash(./gradlew :game-engine-service:test :game-session-service:test)",
+      "Bash(./gradlew :game-engine-service:test :game-session-service:test --rerun)"
     ]
   }
 }

@@ -23,4 +23,15 @@ public class SessionRepository {
 		sessions.put(session.getSessionId(), session);
 		return session;
 	}
+
+	/**
+	 * Removes every session from the in-memory store.
+	 *
+	 * <p>Intended exclusively for test isolation between
+	 * {@code @SpringBootTest} runs that share the same Spring context.
+	 * Production code must not call this.
+	 */
+	public void clear() {
+		sessions.clear();
+	}
 }

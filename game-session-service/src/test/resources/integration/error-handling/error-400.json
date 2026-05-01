@@ -1,0 +1,7 @@
+{
+  "timestamp": "2024-01-01T00:00:00Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Cell 4 is already occupied",
+  "path": "/games"
+}

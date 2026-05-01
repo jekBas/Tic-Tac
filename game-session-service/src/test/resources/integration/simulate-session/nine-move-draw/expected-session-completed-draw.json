@@ -1,0 +1,89 @@
+{
+  "sessionId": null,
+  "gameId": "${gameId}",
+  "status": "COMPLETED",
+  "currentGameState": {
+    "gameId": "${gameId}",
+    "board": ["O", "O", "X", "X", "X", "O", "O", "X", "X"],
+    "status": "DRAW",
+    "winner": null,
+    "nextPlayer": null
+  },
+  "moveHistory": [
+    {
+      "moveNumber": 1,
+      "player": "X",
+      "position": 4,
+      "resultingStatus": "IN_PROGRESS",
+      "boardAfterMove": [null, null, null, null, "X", null, null, null, null],
+      "createdAt": null
+    },
+    {
+      "moveNumber": 2,
+      "player": "O",
+      "position": 0,
+      "resultingStatus": "IN_PROGRESS",
+      "boardAfterMove": ["O", null, null, null, "X", null, null, null, null],
+      "createdAt": null
+    },
+    {
+      "moveNumber": 3,
+      "player": "X",
+      "position": 2,
+      "resultingStatus": "IN_PROGRESS",
+      "boardAfterMove": ["O", null, "X", null, "X", null, null, null, null],
+      "createdAt": null
+    },
+    {
+      "moveNumber": 4,
+      "player": "O",
+      "position": 6,
+      "resultingStatus": "IN_PROGRESS",
+      "boardAfterMove": ["O", null, "X", null, "X", null, "O", null, null],
+      "createdAt": null
+    },
+    {
+      "moveNumber": 5,
+      "player": "X",
+      "position": 3,
+      "resultingStatus": "IN_PROGRESS",
+      "boardAfterMove": ["O", null, "X", "X", "X", null, "O", null, null],
+      "createdAt": null
+    },
+    {
+      "moveNumber": 6,
+      "player": "O",
+      "position": 5,
+      "resultingStatus": "IN_PROGRESS",
+      "boardAfterMove": ["O", null, "X", "X", "X", "O", "O", null, null],
+      "createdAt": null
+    },
+    {
+      "moveNumber": 7,
+      "player": "X",
+      "position": 8,
+      "resultingStatus": "IN_PROGRESS",
+      "boardAfterMove": ["O", null, "X", "X", "X", "O", "O", null, "X"],
+      "createdAt": null
+    },
+    {
+      "moveNumber": 8,
+      "player": "O",
+      "position": 1,
+      "resultingStatus": "IN_PROGRESS",
+      "boardAfterMove": ["O", "O", "X", "X", "X", "O", "O", null, "X"],
+      "createdAt": null
+    },
+    {
+      "moveNumber": 9,
+      "player": "X",
+      "position": 7,
+      "resultingStatus": "DRAW",
+      "boardAfterMove": ["O", "O", "X", "X", "X", "O", "O", "X", "X"],
+      "createdAt": null
+    }
+  ],
+  "createdAt": null,
+  "updatedAt": null,
+  "failureReason": null
+}

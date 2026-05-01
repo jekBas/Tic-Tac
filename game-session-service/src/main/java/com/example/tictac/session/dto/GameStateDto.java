@@ -1,7 +1,7 @@
 package com.example.tictac.session.dto;
 
+import com.example.tictac.common.enums.Player;
 import com.example.tictac.session.model.enums.GameStatus;
-import com.example.tictac.session.model.enums.Player;
 import java.util.List;
 
 /**

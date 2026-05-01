@@ -10,7 +10,14 @@
       "Bash(./gradlew :game-engine-service:compileJava :game-engine-service:test --tests \"com.example.tictac.engine.service.*\")",
       "Bash(./gradlew projects *)",
       "Bash(./gradlew compileJava *)",
-      "Bash(./gradlew :game-session-service:test *)"
+      "Bash(./gradlew :game-session-service:test *)",
+      "Bash(xargs -I {} cat {})",
+      "Bash(npm --version)",
+      "Read(//opt/homebrew/Cellar/node/19.6.0/bin/**)",
+      "Bash(nvm list *)",
+      "Bash(/opt/homebrew/bin/node *)",
+      "Bash(PATH=\"/opt/homebrew/bin:$PATH\" npm run *)",
+      "Bash(npm run *)"
     ]
   }
 }

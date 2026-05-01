@@ -54,10 +54,10 @@ class SessionControllerTest {
 
 		mockMvc.perform(post("/sessions"))
 				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.sessionId", is(SESSION_ID)))
-				.andExpect(jsonPath("$.gameId", is(GAME_ID)))
+				.andExpect(jsonPath("$['session-id']", is(SESSION_ID)))
+				.andExpect(jsonPath("$['game-id']", is(GAME_ID)))
 				.andExpect(jsonPath("$.status", is(SessionStatus.CREATED.name())))
-				.andExpect(jsonPath("$.moveHistory", empty()));
+				.andExpect(jsonPath("$['move-history']", empty()));
 	}
 
 	@Test
@@ -67,8 +67,8 @@ class SessionControllerTest {
 
 		mockMvc.perform(get("/sessions/{sessionId}", SESSION_ID))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.sessionId", is(SESSION_ID)))
-				.andExpect(jsonPath("$.gameId", is(GAME_ID)))
+				.andExpect(jsonPath("$['session-id']", is(SESSION_ID)))
+				.andExpect(jsonPath("$['game-id']", is(GAME_ID)))
 				.andExpect(jsonPath("$.status", is(SessionStatus.CREATED.name())));
 	}
 
@@ -90,11 +90,11 @@ class SessionControllerTest {
 
 		mockMvc.perform(post("/sessions/{sessionId}/simulate", SESSION_ID))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.sessionId", is(SESSION_ID)))
+				.andExpect(jsonPath("$['session-id']", is(SESSION_ID)))
 				.andExpect(jsonPath("$.status", is(SessionStatus.COMPLETED.name())))
-				.andExpect(jsonPath("$.moveHistory[0].moveNumber", is(1)))
-				.andExpect(jsonPath("$.moveHistory[0].player", is(Player.X.name())))
-				.andExpect(jsonPath("$.moveHistory[0].position", is(4)));
+				.andExpect(jsonPath("$['move-history'][0]['move-number']", is(1)))
+				.andExpect(jsonPath("$['move-history'][0].player", is(Player.X.name())))
+				.andExpect(jsonPath("$['move-history'][0].position", is(4)));
 	}
 
 	@Test

@@ -11,6 +11,8 @@ import com.example.tictac.common.dto.GameStateDto;
 import com.example.tictac.common.dto.MoveRequest;
 import com.example.tictac.common.enums.GameStatus;
 import com.example.tictac.common.enums.Player;
+import com.example.tictac.session.GameSessionServiceApplication;
+import com.example.tictac.session.config.GameEngineProperties;
 import com.example.tictac.session.exception.GameEngineCommunicationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,26 +21,42 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureMockRestServiceServer;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.client.response.MockRestResponseCreators;
-import org.springframework.web.client.RestClient;
 
+@SpringBootTest(
+		classes = GameSessionServiceApplication.class,
+		webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@AutoConfigureMockRestServiceServer
 class GameEngineClientTest {
 
 	private static final String GAME_ID = "game-123";
 
+	@Autowired
 	private GameEngineClient gameEngineClient;
+
+	@Autowired
 	private MockRestServiceServer server;
-	private final ObjectMapper objectMapper = new ObjectMapper();
+
+	@Autowired
+	private ObjectMapper objectMapper;
+
+	@Autowired
+	private GameEngineProperties gameEngineProperties;
 
 	@BeforeEach
-	void setUp() {
-		RestClient.Builder builder = RestClient.builder();
-		server = MockRestServiceServer.bindTo(builder).build();
-		gameEngineClient = new GameEngineClient(builder.build());
+	void resetMockServer() {
+		server.reset();
+	}
+
+	private String enginePath(String path) {
+		return gameEngineProperties.baseUrl() + path;
 	}
 
 	@Test
@@ -46,7 +64,7 @@ class GameEngineClientTest {
 		GameStateDto expected = new GameStateDto(
 				GAME_ID, Collections.nCopies(9, (String) null), GameStatus.NEW, null, null);
 
-		server.expect(requestTo("/games"))
+		server.expect(requestTo(enginePath("/games")))
 				.andExpect(method(HttpMethod.POST))
 				.andRespond(withSuccess(objectMapper.writeValueAsString(expected), MediaType.APPLICATION_JSON));
 
@@ -66,7 +84,7 @@ class GameEngineClientTest {
 				GameStatus.IN_PROGRESS, null, Player.O);
 		MoveRequest moveRequest = new MoveRequest(Player.X, 4);
 
-		server.expect(requestTo("/games/" + GAME_ID + "/move"))
+		server.expect(requestTo(enginePath("/games/" + GAME_ID + "/move")))
 				.andExpect(method(HttpMethod.POST))
 				.andExpect(content().json(objectMapper.writeValueAsString(moveRequest)))
 				.andRespond(withSuccess(objectMapper.writeValueAsString(expected), MediaType.APPLICATION_JSON));
@@ -84,7 +102,7 @@ class GameEngineClientTest {
 		GameStateDto expected = new GameStateDto(
 				GAME_ID, Collections.nCopies(9, (String) null), GameStatus.IN_PROGRESS, null, Player.X);
 
-		server.expect(requestTo("/games/" + GAME_ID))
+		server.expect(requestTo(enginePath("/games/" + GAME_ID)))
 				.andExpect(method(HttpMethod.GET))
 				.andRespond(withSuccess(objectMapper.writeValueAsString(expected), MediaType.APPLICATION_JSON));
 
@@ -98,7 +116,7 @@ class GameEngineClientTest {
 
 	@Test
 	void createGameThrowsOnServerError() {
-		server.expect(requestTo("/games"))
+		server.expect(requestTo(enginePath("/games")))
 				.andExpect(method(HttpMethod.POST))
 				.andRespond(MockRestResponseCreators.withServerError()
 						.body("Internal Server Error"));
@@ -112,15 +130,13 @@ class GameEngineClientTest {
 	}
 
 	@Test
-	void applyMoveThrowsOnBadRequest() throws JsonProcessingException {
-		MoveRequest moveRequest = new MoveRequest(Player.X, 4);
-
-		server.expect(requestTo("/games/" + GAME_ID + "/move"))
+	void applyMoveThrowsOnBadRequest() {
+		server.expect(requestTo(enginePath("/games/" + GAME_ID + "/move")))
 				.andExpect(method(HttpMethod.POST))
 				.andRespond(MockRestResponseCreators.withStatus(HttpStatus.BAD_REQUEST)
 						.body("{\"message\":\"Cell 4 is already occupied\"}"));
 
-		assertThatThrownBy(() -> gameEngineClient.applyMove(GAME_ID, moveRequest))
+		assertThatThrownBy(() -> gameEngineClient.applyMove(GAME_ID, new MoveRequest(Player.X, 4)))
 				.isInstanceOf(GameEngineCommunicationException.class)
 				.hasMessageContaining("Game Engine")
 				.hasMessageContaining("400");
@@ -130,7 +146,7 @@ class GameEngineClientTest {
 
 	@Test
 	void getGameThrowsOnNotFound() {
-		server.expect(requestTo("/games/" + GAME_ID))
+		server.expect(requestTo(enginePath("/games/" + GAME_ID)))
 				.andExpect(method(HttpMethod.GET))
 				.andRespond(MockRestResponseCreators.withStatus(HttpStatus.NOT_FOUND)
 						.body("{\"message\":\"Game not found\"}"));
@@ -145,7 +161,7 @@ class GameEngineClientTest {
 
 	@Test
 	void createGameThrowsOnConnectionFailure() {
-		server.expect(requestTo("/games"))
+		server.expect(requestTo(enginePath("/games")))
 				.andExpect(method(HttpMethod.POST))
 				.andRespond(request -> {
 					throw new IOException("Connection refused");

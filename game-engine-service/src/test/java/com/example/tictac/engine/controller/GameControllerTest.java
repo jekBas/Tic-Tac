@@ -58,10 +58,10 @@ class GameControllerTest {
 
 		mockMvc.perform(post("/games"))
 				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.gameId", is(GAME_ID)))
+				.andExpect(jsonPath("$['game-id']", is(GAME_ID)))
 				.andExpect(jsonPath("$.status", is(GameStatus.NEW.name())))
 				.andExpect(jsonPath("$.winner").value(nullValue()))
-				.andExpect(jsonPath("$.nextPlayer").value(nullValue()))
+				.andExpect(jsonPath("$['next-player']").value(nullValue()))
 				.andExpect(jsonPath("$.board", hasSize(GameConstants.BOARD_SIZE)));
 	}
 
@@ -73,9 +73,9 @@ class GameControllerTest {
 
 		mockMvc.perform(get("/games/{gameId}", GAME_ID))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.gameId", is(GAME_ID)))
+				.andExpect(jsonPath("$['game-id']", is(GAME_ID)))
 				.andExpect(jsonPath("$.status", is(GameStatus.IN_PROGRESS.name())))
-				.andExpect(jsonPath("$.nextPlayer", is(Player.X.name())));
+				.andExpect(jsonPath("$['next-player']", is(Player.X.name())));
 	}
 
 	@Test
@@ -102,9 +102,9 @@ class GameControllerTest {
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(objectMapper.writeValueAsString(request)))
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.gameId", is(GAME_ID)))
+				.andExpect(jsonPath("$['game-id']", is(GAME_ID)))
 				.andExpect(jsonPath("$.status", is(GameStatus.IN_PROGRESS.name())))
-				.andExpect(jsonPath("$.nextPlayer", is(Player.O.name())))
+				.andExpect(jsonPath("$['next-player']", is(Player.O.name())))
 				.andExpect(jsonPath("$.board[4]", is(Player.X.name())));
 	}
 

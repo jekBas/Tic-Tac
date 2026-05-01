@@ -2,6 +2,7 @@ package com.example.tictac.session.integration.support;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -19,6 +20,7 @@ public final class JsonFixtures {
 	private static final String FIXTURE_ROOT = "/integration/";
 
 	private static final ObjectMapper MAPPER = new ObjectMapper()
+			.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
 			.registerModule(new JavaTimeModule())
 			.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 

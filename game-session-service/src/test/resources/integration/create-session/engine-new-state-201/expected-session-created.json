@@ -1,16 +1,16 @@
 {
-  "sessionId": null,
-  "gameId": "${gameId}",
+  "session-id": null,
+  "game-id": "${gameId}",
   "status": "CREATED",
-  "currentGameState": {
-    "gameId": "${gameId}",
+  "current-game-state": {
+    "game-id": "${gameId}",
     "board": [null, null, null, null, null, null, null, null, null],
     "status": "NEW",
     "winner": null,
-    "nextPlayer": null
+    "next-player": null
   },
-  "moveHistory": [],
-  "createdAt": null,
-  "updatedAt": null,
-  "failureReason": null
+  "move-history": [],
+  "created-at": null,
+  "updated-at": null,
+  "failure-reason": null
 }

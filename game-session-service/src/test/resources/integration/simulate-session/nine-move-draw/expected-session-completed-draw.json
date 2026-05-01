@@ -1,89 +1,89 @@
 {
-  "sessionId": null,
-  "gameId": "${gameId}",
+  "session-id": null,
+  "game-id": "${gameId}",
   "status": "COMPLETED",
-  "currentGameState": {
-    "gameId": "${gameId}",
+  "current-game-state": {
+    "game-id": "${gameId}",
     "board": ["O", "O", "X", "X", "X", "O", "O", "X", "X"],
     "status": "DRAW",
     "winner": null,
-    "nextPlayer": null
+    "next-player": null
   },
-  "moveHistory": [
+  "move-history": [
     {
-      "moveNumber": 1,
+      "move-number": 1,
       "player": "X",
       "position": 4,
-      "resultingStatus": "IN_PROGRESS",
-      "boardAfterMove": [null, null, null, null, "X", null, null, null, null],
-      "createdAt": null
+      "resulting-status": "IN_PROGRESS",
+      "board-after-move": [null, null, null, null, "X", null, null, null, null],
+      "created-at": null
     },
     {
-      "moveNumber": 2,
+      "move-number": 2,
       "player": "O",
       "position": 0,
-      "resultingStatus": "IN_PROGRESS",
-      "boardAfterMove": ["O", null, null, null, "X", null, null, null, null],
-      "createdAt": null
+      "resulting-status": "IN_PROGRESS",
+      "board-after-move": ["O", null, null, null, "X", null, null, null, null],
+      "created-at": null
     },
     {
-      "moveNumber": 3,
+      "move-number": 3,
       "player": "X",
       "position": 2,
-      "resultingStatus": "IN_PROGRESS",
-      "boardAfterMove": ["O", null, "X", null, "X", null, null, null, null],
-      "createdAt": null
+      "resulting-status": "IN_PROGRESS",
+      "board-after-move": ["O", null, "X", null, "X", null, null, null, null],
+      "created-at": null
     },
     {
-      "moveNumber": 4,
+      "move-number": 4,
       "player": "O",
       "position": 6,
-      "resultingStatus": "IN_PROGRESS",
-      "boardAfterMove": ["O", null, "X", null, "X", null, "O", null, null],
-      "createdAt": null
+      "resulting-status": "IN_PROGRESS",
+      "board-after-move": ["O", null, "X", null, "X", null, "O", null, null],
+      "created-at": null
     },
     {
-      "moveNumber": 5,
+      "move-number": 5,
       "player": "X",
       "position": 3,
-      "resultingStatus": "IN_PROGRESS",
-      "boardAfterMove": ["O", null, "X", "X", "X", null, "O", null, null],
-      "createdAt": null
+      "resulting-status": "IN_PROGRESS",
+      "board-after-move": ["O", null, "X", "X", "X", null, "O", null, null],
+      "created-at": null
     },
     {
-      "moveNumber": 6,
+      "move-number": 6,
       "player": "O",
       "position": 5,
-      "resultingStatus": "IN_PROGRESS",
-      "boardAfterMove": ["O", null, "X", "X", "X", "O", "O", null, null],
-      "createdAt": null
+      "resulting-status": "IN_PROGRESS",
+      "board-after-move": ["O", null, "X", "X", "X", "O", "O", null, null],
+      "created-at": null
     },
     {
-      "moveNumber": 7,
+      "move-number": 7,
       "player": "X",
       "position": 8,
-      "resultingStatus": "IN_PROGRESS",
-      "boardAfterMove": ["O", null, "X", "X", "X", "O", "O", null, "X"],
-      "createdAt": null
+      "resulting-status": "IN_PROGRESS",
+      "board-after-move": ["O", null, "X", "X", "X", "O", "O", null, "X"],
+      "created-at": null
     },
     {
-      "moveNumber": 8,
+      "move-number": 8,
       "player": "O",
       "position": 1,
-      "resultingStatus": "IN_PROGRESS",
-      "boardAfterMove": ["O", "O", "X", "X", "X", "O", "O", null, "X"],
-      "createdAt": null
+      "resulting-status": "IN_PROGRESS",
+      "board-after-move": ["O", "O", "X", "X", "X", "O", "O", null, "X"],
+      "created-at": null
     },
     {
-      "moveNumber": 9,
+      "move-number": 9,
       "player": "X",
       "position": 7,
-      "resultingStatus": "DRAW",
-      "boardAfterMove": ["O", "O", "X", "X", "X", "O", "O", "X", "X"],
-      "createdAt": null
+      "resulting-status": "DRAW",
+      "board-after-move": ["O", "O", "X", "X", "X", "O", "O", "X", "X"],
+      "created-at": null
     }
   ],
-  "createdAt": null,
-  "updatedAt": null,
-  "failureReason": null
+  "created-at": null,
+  "updated-at": null,
+  "failure-reason": null
 }

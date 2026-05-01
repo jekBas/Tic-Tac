@@ -1,7 +1,7 @@
 {
-  "gameId": "${gameId}",
+  "game-id": "${gameId}",
   "board": ["O", null, "X", null, "X", null, null, null, null],
   "status": "IN_PROGRESS",
   "winner": null,
-  "nextPlayer": "O"
+  "next-player": "O"
 }

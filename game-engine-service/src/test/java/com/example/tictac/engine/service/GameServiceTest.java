@@ -61,12 +61,24 @@ class GameServiceTest {
 	}
 
 	@Test
-	void applyMoveRejectsWrongPlayer() {
-		String gameId = "g1";
+	void applyMoveAllowsOToMakeFirstMoveAfterGameIsCreated() {
+		String gameId = gameService.createGame().getGameId();
 
-		assertThatThrownBy(() -> gameService.applyMove(gameId, new MoveRequest(Player.O, 0)))
+		Game after = gameService.applyMove(gameId, new MoveRequest(Player.O, 6));
+
+		assertThat(after.getBoard()[6]).isEqualTo(Player.O);
+		assertThat(after.getStatus()).isEqualTo(GameStatus.IN_PROGRESS);
+		assertThat(after.getNextPlayer()).isEqualTo(Player.X);
+	}
+
+	@Test
+	void applyMoveRejectsWrongPlayerAfterFirstMove() {
+		String gameId = "g1";
+		gameService.applyMove(gameId, new MoveRequest(Player.X, 0));
+
+		assertThatThrownBy(() -> gameService.applyMove(gameId, new MoveRequest(Player.X, 1)))
 				.isInstanceOf(InvalidMoveException.class)
-				.hasMessageContaining("not O's turn");
+				.hasMessageContaining("not X's turn");
 	}
 
 	@Test

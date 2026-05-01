@@ -82,7 +82,7 @@ public class GameService {
 					"Game is already finished with status " + game.getStatus());
 		}
 
-		if (player != game.getNextPlayer()) {
+		if (game.getStatus() == GameStatus.IN_PROGRESS && player != game.getNextPlayer()) {
 			throw new InvalidMoveException(
 					"It is not " + player + "'s turn; expected " + game.getNextPlayer());
 		}

@@ -4,7 +4,7 @@ export type GameStatus = 'NEW' | 'IN_PROGRESS' | 'X_WON' | 'O_WON' | 'DRAW';
 
 export type SessionStatus = 'CREATED' | 'IN_PROGRESS' | 'SIMULATING' | 'COMPLETED' | 'FAILED';
 
-export type SessionMode = 'SIMULATION' | 'PLAYER_VS_COMPUTER';
+export type SessionMode = 'SIMULATION' | 'PLAYER_VS_COMPUTER' | 'PLAYER_VS_STUPID_COMPUTER';
 
 export type CellValue = 'X' | 'O' | null;
 

@@ -47,7 +47,8 @@ public class SessionController {
 
 	@PostMapping("/player-vs-computer")
 	public ResponseEntity<SessionResponse> createPlayerVsComputer(@Valid @RequestBody PlayerVsComputerRequest request) {
-		GameSession session = sessionService.createPlayerVsComputerSession(request.humanPlayer());
+		GameSession session = sessionService.createPlayerVsComputerSession(
+				request.humanPlayer(), request.difficulty());
 		return ResponseEntity
 				.status(HttpStatus.CREATED)
 				.body(SessionResponse.from(session));

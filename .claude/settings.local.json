@@ -28,7 +28,10 @@
       "Bash(./gradlew clean *)",
       "Bash(./gradlew :game-engine-service:test)",
       "Bash(./gradlew :ui:npmInstall)",
-      "Bash(./gradlew :ui:npmInstall --info)"
+      "Bash(./gradlew :ui:npmInstall --info)",
+      "Read(//Users/yevhenbaskakov/.nvm/versions/node/**)",
+      "Bash(nvm ls *)",
+      "Bash(./mvnw test *)"
     ]
   }
 }

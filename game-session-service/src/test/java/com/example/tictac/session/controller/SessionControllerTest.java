@@ -19,6 +19,7 @@ import com.example.tictac.session.exception.SessionNotFoundException;
 import com.example.tictac.session.exception.SimulationAlreadyRunningException;
 import com.example.tictac.session.model.GameSession;
 import com.example.tictac.session.model.MoveRecord;
+import com.example.tictac.session.model.enums.ComputerDifficulty;
 import com.example.tictac.session.model.enums.SessionMode;
 import com.example.tictac.session.model.enums.SessionStatus;
 import com.example.tictac.session.service.SessionService;
@@ -149,7 +150,7 @@ class SessionControllerTest {
 	@Test
 	void createPlayerVsComputerReturnsCreatedWithSession() throws Exception {
 		GameSession session = createPvcSession(Player.X);
-		given(sessionService.createPlayerVsComputerSession(Player.X)).willReturn(session);
+		given(sessionService.createPlayerVsComputerSession(Player.X, ComputerDifficulty.SMART)).willReturn(session);
 
 		mockMvc.perform(post("/sessions/player-vs-computer")
 						.contentType(MediaType.APPLICATION_JSON)

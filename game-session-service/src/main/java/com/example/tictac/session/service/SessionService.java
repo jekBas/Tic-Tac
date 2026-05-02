@@ -12,6 +12,7 @@ import com.example.tictac.session.exception.SimulationAlreadyRunningException;
 import com.example.tictac.session.model.GameSession;
 import com.example.tictac.session.model.MoveRecord;
 import com.example.tictac.common.enums.Player;
+import com.example.tictac.session.model.enums.ComputerDifficulty;
 import com.example.tictac.session.model.enums.SessionMode;
 import com.example.tictac.session.model.enums.SessionStatus;
 import com.example.tictac.session.repository.SessionRepository;
@@ -38,17 +39,20 @@ public class SessionService {
 	private final SessionRepository sessionRepository;
 	private final GameEngineClient gameEngineClient;
 	private final SimulationStrategy simulationStrategy;
+	private final RandomMoveStrategy randomMoveStrategy;
 	private final SimulationProperties simulationProperties;
 	private final SessionEventPublisher eventPublisher;
 
 	public SessionService(SessionRepository sessionRepository,
 												GameEngineClient gameEngineClient,
 												SimulationStrategy simulationStrategy,
+												RandomMoveStrategy randomMoveStrategy,
 												SimulationProperties simulationProperties,
 												SessionEventPublisher eventPublisher) {
 		this.sessionRepository = sessionRepository;
 		this.gameEngineClient = gameEngineClient;
 		this.simulationStrategy = simulationStrategy;
+		this.randomMoveStrategy = randomMoveStrategy;
 		this.simulationProperties = simulationProperties;
 		this.eventPublisher = eventPublisher;
 	}
@@ -102,16 +106,19 @@ public class SessionService {
 		}
 	}
 
-	public GameSession createPlayerVsComputerSession(Player humanPlayer) {
+	public GameSession createPlayerVsComputerSession(Player humanPlayer, ComputerDifficulty difficulty) {
+		SessionMode mode = difficulty == ComputerDifficulty.STUPID
+				? SessionMode.PLAYER_VS_STUPID_COMPUTER
+				: SessionMode.PLAYER_VS_COMPUTER;
 		String sessionId = UUID.randomUUID().toString();
 		GameStateDto initialState = gameEngineClient.createGame();
 		GameSession session = new GameSession(sessionId, initialState.gameId(),
-				SessionMode.PLAYER_VS_COMPUTER, humanPlayer);
+				mode, humanPlayer);
 		session.setCurrentGameState(initialState);
 		session.setStatus(SessionStatus.IN_PROGRESS);
 		sessionRepository.save(session);
-		log.info("Created player-vs-computer session {} (gameId={}, human={})",
-				sessionId, session.getGameId(), humanPlayer);
+		log.info("Created {} session {} (gameId={}, human={})",
+				mode, sessionId, session.getGameId(), humanPlayer);
 
 		if (humanPlayer == Player.O) {
 			performComputerMove(session);
@@ -123,7 +130,8 @@ public class SessionService {
 	public GameSession humanMove(String sessionId, int position) {
 		GameSession session = getSession(sessionId);
 
-		if (session.getMode() != SessionMode.PLAYER_VS_COMPUTER) {
+		if (session.getMode() != SessionMode.PLAYER_VS_COMPUTER
+				&& session.getMode() != SessionMode.PLAYER_VS_STUPID_COMPUTER) {
 			throw new InvalidSessionStateException(
 					"Session " + sessionId + " is not a player-vs-computer session");
 		}
@@ -172,7 +180,7 @@ public class SessionService {
 	private void performComputerMove(GameSession session) {
 		GameStateDto state = session.getCurrentGameState();
 		Player computerPlayer = session.getHumanPlayer().opposite();
-		int computerPosition = simulationStrategy.chooseMove(state.board(), computerPlayer);
+		int computerPosition = chooseComputerMove(session.getMode(), state.board(), computerPlayer);
 		GameStateDto afterComputer = gameEngineClient.applyMove(
 				session.getGameId(), new MoveRequest(computerPlayer, computerPosition));
 		session.setCurrentGameState(afterComputer);
@@ -183,6 +191,14 @@ public class SessionService {
 				afterComputer.status(),
 				afterComputer.board(),
 				Instant.now()));
+	}
+
+	private int chooseComputerMove(SessionMode mode,
+																 List<String> board, Player player) {
+		if (mode == SessionMode.PLAYER_VS_STUPID_COMPUTER) {
+			return randomMoveStrategy.chooseMove(board);
+		}
+		return simulationStrategy.chooseMove(board, player);
 	}
 
 	private GameSession simulateLocked(GameSession session) {

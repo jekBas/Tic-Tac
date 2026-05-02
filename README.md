@@ -55,7 +55,8 @@ npm run dev
 Open `http://localhost:3000` in a browser.
 
 - Click **"Start Simulation"** to watch an automated game play out in real time.
-- Click **"Play against Computer"** to play interactively against the AI.
+- Click **"Play against Computer"** to play interactively against the AI (rule-based strategy).
+- Click **"Play with Stupid Computer"** to play against a computer that picks random moves.
 
 ## Building
 
@@ -143,10 +144,14 @@ Position is 0–8, mapped left-to-right, top-to-bottom. Returns the updated game
 
 Request body:
 ```json
-{ "human-player": "X" }
+{ "human-player": "X", "difficulty": "SMART" }
 ```
 
 Creates a session where the human plays as X (first) or O (second). If the human chose O, the computer makes the opening move immediately.
+
+The `difficulty` field is optional and defaults to `SMART`. Accepted values:
+- `SMART` — rule-based strategy (win > block > center > corner > side)
+- `STUPID` — random move selection from empty cells
 
 #### POST /sessions/{sessionId}/human-move
 
@@ -172,10 +177,15 @@ curl -s http://localhost:8082/sessions/{sessionId} | jq .
 # Get game state from the engine
 curl -s http://localhost:8081/games/{gameId} | jq .
 
-# Create a player-vs-computer session (human as X)
+# Create a player-vs-computer session (human as X, smart computer)
 curl -s -X POST http://localhost:8082/sessions/player-vs-computer \
   -H 'Content-Type: application/json' \
   -d '{"human-player":"X"}' | jq .
+
+# Create a player-vs-computer session (human as X, stupid/random computer)
+curl -s -X POST http://localhost:8082/sessions/player-vs-computer \
+  -H 'Content-Type: application/json' \
+  -d '{"human-player":"X","difficulty":"STUPID"}' | jq .
 
 # Submit a human move (position 4 = center)
 curl -s -X POST http://localhost:8082/sessions/{sessionId}/human-move \
@@ -209,7 +219,8 @@ The React UI subscribes to this topic immediately after creating a session and u
 ## UI Behavior
 
 - **Start Simulation** — creates a session, subscribes to WebSocket, triggers simulation. Moves appear on the board in real time (500 ms delay between moves).
-- **Play against Computer** — prompts for side choice (X or O), creates an interactive session. Human clicks empty cells; the computer responds using the same rule-based `SimulationStrategy` that powers the automated simulation.
+- **Play against Computer** — prompts for side choice (X or O), creates an interactive session. Human clicks empty cells; the computer responds using the rule-based `SimulationStrategy` (win > block > center > corner > side).
+- **Play with Stupid Computer** — same flow as "Play against Computer" but the computer picks a random empty cell instead of using the smart strategy.
 - The board, game status, winner/draw, and full move history are displayed.
 - API errors are shown inline with a dismiss button.
 
@@ -241,7 +252,7 @@ Tests use JUnit 5, Mockito, AssertJ, Spring MockMvc, WireMock, and `TestRestTemp
 - **In-memory storage only** — all game and session state is lost on restart. No database is used.
 - **No service discovery or API gateway** — services communicate via hard-coded `localhost` URLs.
 - **Single-instance** — no horizontal scaling or distributed locking beyond per-session `ReentrantLock`.
-- **Computer strategy is deterministic** — the `SimulationStrategy` follows fixed rules (win > block > center > corner > side) and will always make the same moves given the same board.
+- **Smart computer strategy is deterministic** — the `SimulationStrategy` follows fixed rules (win > block > center > corner > side) and will always make the same moves given the same board. The `STUPID` difficulty uses random selection.
 - **No authentication/authorization** — all endpoints are open.
 - **Retry logic** — the Session Service retries failed engine calls (3 attempts, exponential backoff) but does not handle prolonged outages beyond that.
 

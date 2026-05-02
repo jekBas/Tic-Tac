@@ -21,6 +21,7 @@ export function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPlayerChoice, setShowPlayerChoice] = useState(false);
+  const [pendingMode, setPendingMode] = useState<'PLAYER_VS_COMPUTER' | 'PLAYER_VS_STUPID_COMPUTER' | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
   const cleanup = useCallback(() => {
@@ -45,6 +46,7 @@ export function App() {
     setMoves([]);
     setCurrentMoveIndex(-1);
     setShowPlayerChoice(false);
+    setPendingMode(null);
     cleanup();
   }
 
@@ -100,17 +102,26 @@ export function App() {
 
   function handlePlayAgainstComputer() {
     resetState();
+    setPendingMode('PLAYER_VS_COMPUTER');
+    setShowPlayerChoice(true);
+  }
+
+  function handlePlayAgainstStupidComputer() {
+    resetState();
+    setPendingMode('PLAYER_VS_STUPID_COMPUTER');
     setShowPlayerChoice(true);
   }
 
   async function handlePlayerChoice(player: Player) {
     setShowPlayerChoice(false);
     setIsLoading(true);
-    setSessionMode('PLAYER_VS_COMPUTER');
+    const mode = pendingMode ?? 'PLAYER_VS_COMPUTER';
+    setSessionMode(mode);
     setHumanPlayer(player);
 
     try {
-      const created = await createPlayerVsComputerSession(player);
+      const created = await createPlayerVsComputerSession(
+        player, mode === 'PLAYER_VS_STUPID_COMPUTER' ? 'STUPID' : 'SMART');
       const id = created['session-id'];
       setSessionId(id);
       setSessionStatus(created.status);
@@ -166,7 +177,7 @@ export function App() {
     }
   }
 
-  const isHumanTurn = sessionMode === 'PLAYER_VS_COMPUTER'
+  const isHumanTurn = (sessionMode === 'PLAYER_VS_COMPUTER' || sessionMode === 'PLAYER_VS_STUPID_COMPUTER')
     && sessionStatus === 'IN_PROGRESS'
     && !isLoading
     && gameState?.['next-player'] === humanPlayer;
@@ -189,6 +200,13 @@ export function App() {
           disabled={isLoading}
         >
           Play against Computer
+        </button>
+        <button
+          className="start-button pvc-button"
+          onClick={handlePlayAgainstStupidComputer}
+          disabled={isLoading}
+        >
+          Play with Stupid Computer
         </button>
       </div>
 

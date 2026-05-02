@@ -20,6 +20,7 @@ import com.example.tictac.session.exception.InvalidSessionStateException;
 import com.example.tictac.session.exception.SessionNotFoundException;
 import com.example.tictac.session.exception.SimulationAlreadyRunningException;
 import com.example.tictac.session.model.GameSession;
+import com.example.tictac.session.model.enums.ComputerDifficulty;
 import com.example.tictac.session.model.enums.SessionMode;
 import com.example.tictac.session.model.enums.SessionStatus;
 import com.example.tictac.session.repository.SessionRepository;
@@ -47,6 +48,9 @@ class SessionServiceTest {
 
 	@Mock
 	private SimulationStrategy simulationStrategy;
+
+	@Mock
+	private RandomMoveStrategy randomMoveStrategy;
 
 	@Mock
 	private SimulationProperties simulationProperties;
@@ -276,7 +280,7 @@ class SessionServiceTest {
 		when(gameEngineClient.createGame()).thenReturn(initialState);
 		when(sessionRepository.save(any(GameSession.class))).thenAnswer(inv -> inv.getArgument(0));
 
-		GameSession session = sessionService.createPlayerVsComputerSession(Player.X);
+		GameSession session = sessionService.createPlayerVsComputerSession(Player.X, ComputerDifficulty.SMART);
 
 		assertThat(session.getMode()).isEqualTo(SessionMode.PLAYER_VS_COMPUTER);
 		assertThat(session.getHumanPlayer()).isEqualTo(Player.X);
@@ -300,7 +304,7 @@ class SessionServiceTest {
 		when(gameEngineClient.applyMove(eq(ENGINE_GAME_ID), any(MoveRequest.class)))
 				.thenReturn(afterMove);
 
-		GameSession session = sessionService.createPlayerVsComputerSession(Player.O);
+		GameSession session = sessionService.createPlayerVsComputerSession(Player.O, ComputerDifficulty.SMART);
 
 		assertThat(session.getHumanPlayer()).isEqualTo(Player.O);
 		assertThat(session.getMoveHistory()).hasSize(1);
@@ -404,5 +408,75 @@ class SessionServiceTest {
 		assertThatThrownBy(() -> sessionService.humanMove("session-1", 0))
 				.isInstanceOf(InvalidSessionStateException.class)
 				.hasMessageContaining("not a player-vs-computer session");
+	}
+
+	// --- Player vs Stupid Computer tests ---
+	@Test
+	void createPlayerVsStupidComputerSessionSetsCorrectMode() {
+		GameStateDto initialState = new GameStateDto(
+				ENGINE_GAME_ID, Collections.nCopies(9, (String) null), GameStatus.NEW, null, Player.X);
+		when(gameEngineClient.createGame()).thenReturn(initialState);
+		when(sessionRepository.save(any(GameSession.class))).thenAnswer(inv -> inv.getArgument(0));
+
+		GameSession session = sessionService.createPlayerVsComputerSession(Player.X, ComputerDifficulty.STUPID);
+
+		assertThat(session.getMode()).isEqualTo(SessionMode.PLAYER_VS_STUPID_COMPUTER);
+		assertThat(session.getHumanPlayer()).isEqualTo(Player.X);
+		assertThat(session.getStatus()).isEqualTo(SessionStatus.IN_PROGRESS);
+		assertThat(session.getMoveHistory()).isEmpty();
+		verify(gameEngineClient, never()).applyMove(any(), any());
+	}
+
+	@Test
+	void createPlayerVsStupidComputerSessionAsOUsesRandomStrategy() {
+		GameStateDto initialState = new GameStateDto(
+				ENGINE_GAME_ID, Collections.nCopies(9, (String) null), GameStatus.NEW, null, Player.X);
+		when(gameEngineClient.createGame()).thenReturn(initialState);
+		when(sessionRepository.save(any(GameSession.class))).thenAnswer(inv -> inv.getArgument(0));
+		when(randomMoveStrategy.chooseMove(any())).thenReturn(7);
+
+		GameStateDto afterMove = new GameStateDto(
+				ENGINE_GAME_ID,
+				Arrays.asList(null, null, null, null, null, null, null, "X", null),
+				GameStatus.IN_PROGRESS, null, Player.O);
+		when(gameEngineClient.applyMove(eq(ENGINE_GAME_ID), any(MoveRequest.class)))
+				.thenReturn(afterMove);
+
+		GameSession session = sessionService.createPlayerVsComputerSession(Player.O, ComputerDifficulty.STUPID);
+
+		assertThat(session.getMoveHistory()).hasSize(1);
+		assertThat(session.getMoveHistory().get(0).position()).isEqualTo(7);
+		verify(randomMoveStrategy).chooseMove(any());
+		verify(simulationStrategy, never()).chooseMove(any(), any());
+	}
+
+	@Test
+	void humanMoveInStupidComputerSessionUsesRandomStrategy() {
+		GameSession session = new GameSession("session-1", ENGINE_GAME_ID,
+				SessionMode.PLAYER_VS_STUPID_COMPUTER, Player.X);
+		GameStateDto state = new GameStateDto(
+				ENGINE_GAME_ID, Collections.nCopies(9, (String) null), GameStatus.IN_PROGRESS, null, Player.X);
+		session.setCurrentGameState(state);
+		session.setStatus(SessionStatus.IN_PROGRESS);
+		when(sessionRepository.findById("session-1")).thenReturn(Optional.of(session));
+
+		GameStateDto afterHuman = new GameStateDto(
+				ENGINE_GAME_ID,
+				Arrays.asList(null, null, null, null, "X", null, null, null, null),
+				GameStatus.IN_PROGRESS, null, Player.O);
+		GameStateDto afterComputer = new GameStateDto(
+				ENGINE_GAME_ID,
+				Arrays.asList(null, null, "O", null, "X", null, null, null, null),
+				GameStatus.IN_PROGRESS, null, Player.X);
+		when(gameEngineClient.applyMove(eq(ENGINE_GAME_ID), any(MoveRequest.class)))
+				.thenReturn(afterHuman, afterComputer);
+		when(randomMoveStrategy.chooseMove(any())).thenReturn(2);
+
+		GameSession result = sessionService.humanMove("session-1", 4);
+
+		assertThat(result.getMoveHistory()).hasSize(2);
+		assertThat(result.getMoveHistory().get(1).position()).isEqualTo(2);
+		verify(randomMoveStrategy).chooseMove(any());
+		verify(simulationStrategy, never()).chooseMove(any(), any());
 	}
 }

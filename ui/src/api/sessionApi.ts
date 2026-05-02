@@ -35,10 +35,10 @@ export function getSession(sessionId: string): Promise<SessionResponse> {
   return request<SessionResponse>(`${BASE_URL}/sessions/${sessionId}`);
 }
 
-export function createPlayerVsComputerSession(humanPlayer: Player): Promise<SessionResponse> {
+export function createPlayerVsComputerSession(humanPlayer: Player, difficulty: 'SMART' | 'STUPID' = 'SMART'): Promise<SessionResponse> {
   return request<SessionResponse>(`${BASE_URL}/sessions/player-vs-computer`, {
     method: 'POST',
-    body: JSON.stringify({ 'human-player': humanPlayer }),
+    body: JSON.stringify({ 'human-player': humanPlayer, difficulty }),
   });
 }
 

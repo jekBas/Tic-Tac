@@ -39,3 +39,4 @@ out/
 ### Node / UI ###
 node_modules/
 ui/dist/
+.claude/

@@ -1,14 +1,14 @@
-# Distributed Tic Tac Toe Microservices
+# Distributed Tic-tac-toe Microservices
 
-A distributed Tic Tac Toe application built as a Gradle multi-module Spring Boot project. The system implements a complete game engine with move validation and win/draw detection, a session orchestration service that can simulate full games automatically or host human-vs-computer matches, and a React frontend that displays games in real time over WebSocket.
+A distributed Tic-tac-toe application built as a Gradle multi-module Spring Boot project. The system implements a complete game engine with move validation and win/draw detection, a session orchestration service that can simulate full games automatically or host human-vs-computer matches, and a React frontend that displays games in real time over WebSocket.
 
 ## Architecture
 
 ```text
-┌─────────────┐         ┌──────────────────────┐         ┌──────────────────┐
-│   React UI  │──REST──▶│  Game Session Service │──REST──▶│ Game Engine Svc  │
-│  (Vite/TS)  │◀──WS────│     (port 8082)       │         │   (port 8081)    │
-└─────────────┘         └──────────────────────┘         └──────────────────┘
+┌─────────────┐         ┌───────────────────────┐         ┌──────────────────┐
+│   React UI  │──REST──▶│  Game Session Service  │──REST──▶│ Game Engine Svc  │
+│  (Vite/TS)  │◀──WS────│      (port 8082)       │         │   (port 8081)    │
+└─────────────┘         └───────────────────────┘         └──────────────────┘
 ```
 
 - **Game Engine Service** — authoritative source of truth for board state. Validates moves, detects wins/draws, rejects moves on completed games.
@@ -206,10 +206,10 @@ Event payload (after each move and at completion/failure):
 {
   "session-id": "...",
   "game-id": "...",
-  "session-status": "SIMULATING | IN_PROGRESS | COMPLETED | FAILED",
-  "current-game-state": { "game-id": "...", "board": [...], "status": "...", "winner": null, "next-player": "..." },
-  "latest-move": { "move-number": 1, "player": "X", "position": 4, "resulting-status": "IN_PROGRESS", ... },
-  "move-history": [ ... ],
+  "session-status": "CREATED | IN_PROGRESS | SIMULATING | COMPLETED | FAILED",
+  "current-game-state": { "game-id": "...", "board": ["..."], "status": "...", "winner": null, "next-player": "..." },
+  "latest-move": { "move-number": 1, "player": "X", "position": 4, "resulting-status": "IN_PROGRESS"},
+  "move-history": [ "..." ],
   "failure-reason": null
 }
 ```
@@ -258,9 +258,8 @@ Tests use JUnit 5, Mockito, AssertJ, Spring MockMvc, WireMock, and `TestRestTemp
 
 ## Possible Future Improvements
 
-- Add persistent storage (e.g., PostgreSQL/Redis) for game and session state
-- Introduce service discovery (Eureka/Consul) or an API gateway (Spring Cloud Gateway)
+- Add persistent storage (e.g., PostgreSQL) for game and session state
+- Introduce service discovery API gateway (Spring Cloud Gateway)
 - Add Server-Sent Events or long-polling as a WebSocket alternative
-- Implement a smarter computer strategy (minimax with alpha-beta pruning)
 - Add player authentication and session ownership
 - Support multiplayer (human vs human) with turn-based WebSocket notifications

@@ -72,8 +72,12 @@ public class SessionService {
 	}
 
 	public GameSession getSession(String sessionId) {
+		log.debug("Retrieving session {}", sessionId);
 		return sessionRepository.findById(sessionId)
-				.orElseThrow(() -> new SessionNotFoundException(sessionId));
+				.orElseThrow(() -> {
+					log.warn("Session {} not found", sessionId);
+					return new SessionNotFoundException(sessionId);
+				});
 	}
 
 	/**
@@ -88,15 +92,18 @@ public class SessionService {
 		GameSession session = getSession(sessionId);
 
 		if (session.getStatus() == SessionStatus.COMPLETED) {
+			log.debug("Session {} already completed, skipping simulation", sessionId);
 			return session;
 		}
 		if (session.getStatus() == SessionStatus.FAILED) {
+			log.error("Attempted to simulate FAILED session {}", sessionId);
 			throw new InvalidSessionStateException(
 					"Session " + sessionId + " is in FAILED state and cannot be simulated again");
 		}
 
 		ReentrantLock lock = session.lock();
 		if (!lock.tryLock()) {
+			log.error("Concurrent simulation attempt on session {}", sessionId);
 			throw new SimulationAlreadyRunningException(sessionId);
 		}
 		try {
@@ -129,6 +136,7 @@ public class SessionService {
 
 	public GameSession humanMove(String sessionId, int position) {
 		GameSession session = getSession(sessionId);
+		log.info("Human move: session={}, position={}", sessionId, position);
 
 		if (session.getMode() != SessionMode.PLAYER_VS_COMPUTER
 				&& session.getMode() != SessionMode.PLAYER_VS_STUPID_COMPUTER) {
@@ -174,6 +182,7 @@ public class SessionService {
 
 		sessionRepository.save(session);
 		eventPublisher.publishUpdate(session);
+		log.info("Human move applied: session={}, position={}, status={}", sessionId, position, session.getCurrentGameState().status());
 		return session;
 	}
 
@@ -181,6 +190,7 @@ public class SessionService {
 		GameStateDto state = session.getCurrentGameState();
 		Player computerPlayer = session.getHumanPlayer().opposite();
 		int computerPosition = chooseComputerMove(session.getMode(), state.board(), computerPlayer);
+		log.debug("Computer move: session={}, player={}, position={}", session.getSessionId(), computerPlayer, computerPosition);
 		GameStateDto afterComputer = gameEngineClient.applyMove(
 				session.getGameId(), new MoveRequest(computerPlayer, computerPosition));
 		session.setCurrentGameState(afterComputer);

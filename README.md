@@ -1,6 +1,6 @@
 # Distributed Tic-tac-toe Microservices
 
-A distributed Tic-tac-toe application built as a Gradle multi-module Spring Boot project. The system implements a complete game engine with move validation and win/draw detection, a session orchestration service that can simulate full games automatically or host human-vs-computer matches, and a React frontend that displays games in real time over WebSocket.
+A distributed Tic-tac-toe game built with Spring Boot microservices, real-time WebSocket updates, and a React frontend.
 
 ## Architecture
 
@@ -11,255 +11,87 @@ A distributed Tic-tac-toe application built as a Gradle multi-module Spring Boot
 └─────────────┘         └───────────────────────┘         └──────────────────┘
 ```
 
-- **Game Engine Service** — authoritative source of truth for board state. Validates moves, detects wins/draws, rejects moves on completed games.
-- **Game Session Service** — orchestrates sessions. Creates games on the engine, runs automated simulations via a rule-based strategy, hosts player-vs-computer interactive games, publishes real-time updates over STOMP/WebSocket.
-- **UI** — React/TypeScript single-page app. Shows a 3×3 board, status, move history. Supports both automated simulation and interactive play against the computer.
-
-## Modules
-
-| Module | Type | Default Port |
+| Module | Description | Port |
 | --- | --- | --- |
-| `tictac-common` | Shared Java library (DTOs, enums, validation) | — |
-| `game-engine-service` | Spring Boot service | `8081` |
-| `game-session-service` | Spring Boot service | `8082` |
-| `ui` | React TypeScript frontend (Vite) | `3000` |
+| `tictac-common` | Shared DTOs, enums, validation | — |
+| `game-engine-service` | Game state, move validation, win/draw detection | `8081` |
+| `game-session-service` | Session orchestration, AI strategies, WebSocket events | `8082` |
+| `ui` | React/TypeScript SPA (Vite) | `3000` |
 
-## Prerequisites
+## Key Features
 
-- **Java 21** (project uses Gradle toolchain, will download JDK if needed)
-- **Node.js 18+** (see `ui/.nvmrc`)
-- **Gradle** — the included wrapper (`./gradlew`) is sufficient
+- **Automated simulation** — watch AI vs AI games play out in real time via WebSocket
+- **Player vs Computer** — interactive play with two difficulty levels (rule-based smart AI / random)
+- **Concurrency-safe** — per-game `ReentrantLock`, `tryLock()` prevents concurrent simulations
+- **Resilient communication** — retry with exponential backoff (3 attempts, 500ms base) between services
+- **Comprehensive testing** — ~127 tests (unit + integration with WireMock)
 
-## Quick Start (Local)
+## Tech Stack
 
-Open three terminals from the project root:
+- Java 21, Spring Boot 3.5, Spring WebSocket, Spring Retry
+- React 18, TypeScript, Vite, STOMP/SockJS
+- JUnit 5, Mockito, AssertJ, WireMock, Awaitility
 
-**Terminal 1 — Game Engine:**
+## Quick Start
+
 ```bash
+# Terminal 1 — Game Engine
 ./gradlew :game-engine-service:bootRun
-```
 
-**Terminal 2 — Game Session Service:**
-```bash
+# Terminal 2 — Session Service
 ./gradlew :game-session-service:bootRun
+
+# Terminal 3 — UI
+cd ui && npm ci && npm run dev
 ```
 
-**Terminal 3 — UI:**
-```bash
-cd ui
-nvm use 18       # or ensure Node 18+ is active
-npm ci
-npm run dev
-```
+Open `http://localhost:3000`.
 
-Open `http://localhost:3000` in a browser.
-
-- Click **"Start Simulation"** to watch an automated game play out in real time.
-- Click **"Play against Computer"** to play interactively against the AI (rule-based strategy).
-- Click **"Play with Stupid Computer"** to play against a computer that picks random moves.
-
-## Building
-
-### Build Everything (backend + frontend)
+## Build & Test
 
 ```bash
-./gradlew clean build
+./gradlew clean build    # build everything (backend + frontend)
+./gradlew test           # run all backend tests
 ```
 
-This compiles Java sources, runs all backend tests, and builds the UI production bundle.
+## API Overview
 
-### Build Only Backend
-
-```bash
-./gradlew clean build -x :ui:npmBuild -x :ui:npmInstall
-```
-
-### Build Only Frontend
-
-```bash
-cd ui
-npm ci
-npm run build
-```
-
-## Running Tests
-
-### All Backend Tests
-
-```bash
-./gradlew test
-```
-
-### Only Game Engine Tests
-
-```bash
-./gradlew :game-engine-service:test
-```
-
-### Only Game Session Tests
-
-```bash
-./gradlew :game-session-service:test
-```
-
-## Health Checks
-
-Verify each service started correctly:
-
-```text
-GET http://localhost:8081/health
-GET http://localhost:8082/health
-```
-
-## API Reference
-
-### Game Engine Service (port 8081)
+### Game Engine (`localhost:8081`)
 
 | Method | Path | Description |
 | --- | --- | --- |
-| POST | `/games` | Create a new game (empty board) |
-| GET | `/games/{gameId}` | Retrieve current game state |
-| POST | `/games/{gameId}/move` | Apply a move to the game |
+| POST | `/games` | Create a new game |
+| GET | `/games/{gameId}` | Get game state |
+| POST | `/games/{gameId}/move` | Apply a move (`{"player":"X","position":4}`) |
 
-#### POST /games/{gameId}/move
-
-Request body:
-```json
-{ "player": "X", "position": 4 }
-```
-
-Position is 0–8, mapped left-to-right, top-to-bottom. Returns the updated game state.
-
-### Game Session Service (port 8082)
+### Session Service (`localhost:8082`)
 
 | Method | Path | Description |
 | --- | --- | --- |
-| POST | `/sessions` | Create a new simulation session |
-| POST | `/sessions/{sessionId}/simulate` | Run automated simulation to completion |
-| GET | `/sessions/{sessionId}` | Get session state and move history |
-| POST | `/sessions/player-vs-computer` | Create a human-vs-computer session |
-| POST | `/sessions/{sessionId}/human-move` | Submit a human player move |
+| POST | `/sessions` | Create simulation session |
+| POST | `/sessions/{id}/simulate` | Run automated simulation |
+| GET | `/sessions/{id}` | Get session state |
+| POST | `/sessions/player-vs-computer` | Create interactive session (`{"human-player":"X","difficulty":"SMART"}`) |
+| POST | `/sessions/{id}/human-move` | Submit human move (`{"position":4}`) |
 
-#### POST /sessions/player-vs-computer
+### WebSocket
 
-Request body:
-```json
-{ "human-player": "X", "difficulty": "SMART" }
-```
+Subscribe to `/topic/sessions/{sessionId}` via STOMP at `ws://localhost:8082/ws` for real-time game updates.
 
-Creates a session where the human plays as X (first) or O (second). If the human chose O, the computer makes the opening move immediately.
+## Design Decisions
 
-The `difficulty` field is optional and defaults to `SMART`. Accepted values:
-- `SMART` — rule-based strategy (win > block > center > corner > side)
-- `STUPID` — random move selection from empty cells
+- **In-memory storage** — deliberate choice for simplicity; game state is ephemeral by nature in a demo
+- **Two separate services** — demonstrates inter-service communication, retry patterns, and failure isolation
+- **Rule-based AI** — deterministic strategy (win > block > center > corner > side) keeps behavior predictable and testable
+- **WireMock integration tests** — session service tests are fully decoupled from the engine
 
-#### POST /sessions/{sessionId}/human-move
+## Future Improvements
 
-Request body:
-```json
-{ "position": 4 }
-```
-
-Returns the updated session including the human's move and (if the game isn't over) the computer's automatic response.
-
-## Example curl Commands
-
-```bash
-# Create a simulation session
-curl -s -X POST http://localhost:8082/sessions | jq .
-
-# Run the simulation
-curl -s -X POST http://localhost:8082/sessions/{sessionId}/simulate | jq .
-
-# Get session details
-curl -s http://localhost:8082/sessions/{sessionId} | jq .
-
-# Get game state from the engine
-curl -s http://localhost:8081/games/{gameId} | jq .
-
-# Create a player-vs-computer session (human as X, smart computer)
-curl -s -X POST http://localhost:8082/sessions/player-vs-computer \
-  -H 'Content-Type: application/json' \
-  -d '{"human-player":"X"}' | jq .
-
-# Create a player-vs-computer session (human as X, stupid/random computer)
-curl -s -X POST http://localhost:8082/sessions/player-vs-computer \
-  -H 'Content-Type: application/json' \
-  -d '{"human-player":"X","difficulty":"STUPID"}' | jq .
-
-# Submit a human move (position 4 = center)
-curl -s -X POST http://localhost:8082/sessions/{sessionId}/human-move \
-  -H 'Content-Type: application/json' \
-  -d '{"position":4}' | jq .
-```
-
-## WebSocket (Real-Time Updates)
-
-The Game Session Service publishes STOMP events as a simulation runs.
-
-- **WebSocket URL:** `ws://localhost:8082/ws` (native) or `http://localhost:8082/ws` (SockJS fallback)
-- **Topic:** `/topic/sessions/{sessionId}`
-
-Event payload (after each move and at completion/failure):
-
-```json
-{
-  "session-id": "...",
-  "game-id": "...",
-  "session-status": "CREATED | IN_PROGRESS | SIMULATING | COMPLETED | FAILED",
-  "current-game-state": { "game-id": "...", "board": ["..."], "status": "...", "winner": null, "next-player": "..." },
-  "latest-move": { "move-number": 1, "player": "X", "position": 4, "resulting-status": "IN_PROGRESS"},
-  "move-history": [ "..." ],
-  "failure-reason": null
-}
-```
-
-The React UI subscribes to this topic immediately after creating a session and updates the board/status live.
-
-## UI Behavior
-
-- **Start Simulation** — creates a session, subscribes to WebSocket, triggers simulation. Moves appear on the board in real time (500 ms delay between moves).
-- **Play against Computer** — prompts for side choice (X or O), creates an interactive session. Human clicks empty cells; the computer responds using the rule-based `SimulationStrategy` (win > block > center > corner > side).
-- **Play with Stupid Computer** — same flow as "Play against Computer" but the computer picks a random empty cell instead of using the smart strategy.
-- The board, game status, winner/draw, and full move history are displayed.
-- API errors are shown inline with a dismiss button.
-
-## Frontend Configuration
-
-The Vite dev server proxies `/sessions` and `/ws` to `http://localhost:8082` (configured in `vite.config.ts`). No CORS configuration is needed during local development.
-
-For production builds the environment variable `VITE_SESSION_API_BASE_URL` can point the UI directly at the session service (see `ui/.env.production`).
-
-## Error Handling
-
-- The Game Engine returns 400 for invalid moves (occupied cell, out-of-turn, invalid position) and 404 for unknown games.
-- The Session Service maps engine errors to 502 BAD_GATEWAY, validates request bodies (400), detects missing sessions (404), prevents concurrent simulations (409 CONFLICT), and rejects moves on completed/failed sessions (409).
-- The UI displays error messages inline and allows dismissal.
-
-## Testing Summary
-
-| Layer | Scope | Count |
-| --- | --- | --- |
-| Game Engine unit tests | Service, repository, controller | ~37 |
-| Session Service unit tests | Service, strategy, repository, client, controller, event publisher | ~53 |
-| Session Integration tests (WireMock) | Full HTTP stack with mocked engine (simulation, PvC, errors, concurrency) | ~37 |
-| **Total** | | **~127** |
-
-Tests use JUnit 5, Mockito, AssertJ, Spring MockMvc, WireMock, and `TestRestTemplate` for full-stack integration tests.
-
-## Known Limitations
-
-- **In-memory storage only** — all game and session state is lost on restart. No database is used.
-- **No service discovery or API gateway** — services communicate via hard-coded `localhost` URLs.
-- **Single-instance** — no horizontal scaling or distributed locking beyond per-session `ReentrantLock`.
-- **Smart computer strategy is deterministic** — the `SimulationStrategy` follows fixed rules (win > block > center > corner > side) and will always make the same moves given the same board. The `STUPID` difficulty uses random selection.
-- **No authentication/authorization** — all endpoints are open.
-- **Retry logic** — the Session Service retries failed engine calls (3 attempts, exponential backoff) but does not handle prolonged outages beyond that.
-
-## Possible Future Improvements
-
-- Add persistent storage (e.g., PostgreSQL) for game and session state
-- Introduce service discovery API gateway (Spring Cloud Gateway)
-- Add Server-Sent Events or long-polling as a WebSocket alternative
-- Add player authentication and session ownership
-- Support multiplayer (human vs human) with turn-based WebSocket notifications
+- **Containerization** — Dockerfiles with multi-stage builds, docker-compose for one-command startup
+- **OpenAPI / Swagger UI** — auto-generated API documentation from controller annotations
+- **CI/CD pipeline** — GitHub Actions for build, test, and coverage reporting
+- **Observability** — Spring Boot Actuator + Micrometer metrics (games played, win rate, response times)
+- **Persistence** — PostgreSQL + Flyway migrations for game history and leaderboard
+- **Code coverage reporting** — Jacoco with minimum threshold enforcement
+- **Contract testing** — Spring Cloud Contract or PACT testing between session and engine services
+- **Event sourcing** — each move as an immutable event, enabling replay and audit

@@ -69,6 +69,7 @@ When adding new features, write tests at both unit and integration levels.
 - **Event publishing:** `SimpMessagingTemplate` pushes to `/topic/sessions/{id}` after each move
 - **In-memory storage:** `ConcurrentHashMap`-based repositories — no database
 - **Thread-safe collections:** `CopyOnWriteArrayList` for move history
+- **OpenAPI:** `springdoc-openapi-starter-webmvc-ui` with `@Operation`/`@Tag` annotations; Swagger UI at `/swagger-ui/index.html`, spec at `/v3/api-docs`
 
 ## Frontend Conventions
 

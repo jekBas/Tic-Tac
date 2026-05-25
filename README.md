@@ -5,10 +5,10 @@ A distributed Tic-tac-toe game built with Spring Boot microservices, real-time W
 ## Architecture
 
 ```text
-┌─────────────┐         ┌───────────────────────┐          ┌──────────────────┐
-│   React UI  │──REST──▶│  Game Session Service  │──REST──▶│ Game Engine Svc  │
-│  (Vite/TS)  │◀──WS────│      (port 8082)       │         │   (port 8081)    │
-└─────────────┘         └───────────────────────┘          └──────────────────┘
+┌─────────────┐         ┌───────────────────────┐           ┌──────────────────┐
+│   React UI  │──REST──▶│  Game Session Service │── REST──▶ │ Game Engine Svc  │
+│  (Vite/TS)  │◀──WS────│      (port 8082)      │           │   (port 8081)    │
+└─────────────┘         └───────────────────────┘           └──────────────────┘
 ```
 
 | Module | Description | Port |
@@ -63,6 +63,15 @@ Open `http://localhost:3000`.
 ./gradlew test           # run all backend tests
 ```
 
+## API Documentation (Swagger UI)
+
+Both services expose interactive API documentation via OpenAPI 3.0 / Swagger UI:
+
+- **Game Engine:** http://localhost:8081/swagger-ui/index.html
+- **Session Service:** http://localhost:8082/swagger-ui/index.html
+
+Raw OpenAPI specs are available at `/v3/api-docs` on each service.
+
 ## API Overview
 
 ### Game Engine (`localhost:8081`)
@@ -96,7 +105,6 @@ Subscribe to `/topic/sessions/{sessionId}` via STOMP at `ws://localhost:8082/ws`
 
 ## Future Improvements
 
-- **OpenAPI / Swagger UI** — auto-generated API documentation from controller annotations
 - **CI/CD pipeline** — GitHub Actions for build, test, and coverage reporting
 - **Observability** — Spring Boot Actuator + Micrometer metrics (games played, win rate, response times)
 - **Persistence** — PostgreSQL + Flyway migrations for game history and leaderboard

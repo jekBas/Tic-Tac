@@ -1,0 +1,39 @@
+services:
+  game-engine:
+    build:
+      context: .
+      dockerfile: game-engine-service/Dockerfile
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+  game-session:
+    build:
+      context: .
+      dockerfile: game-session-service/Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - GAME_ENGINE_BASE_URL=http://game-engine:8081
+    depends_on:
+      game-engine:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+  ui:
+    build: ./ui
+    ports:
+      - "3000:80"
+    depends_on:
+      game-session:
+        condition: service_healthy

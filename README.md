@@ -5,10 +5,10 @@ A distributed Tic-tac-toe game built with Spring Boot microservices, real-time W
 ## Architecture
 
 ```text
-┌─────────────┐         ┌───────────────────────┐         ┌──────────────────┐
+┌─────────────┐         ┌───────────────────────┐          ┌──────────────────┐
 │   React UI  │──REST──▶│  Game Session Service  │──REST──▶│ Game Engine Svc  │
 │  (Vite/TS)  │◀──WS────│      (port 8082)       │         │   (port 8081)    │
-└─────────────┘         └───────────────────────┘         └──────────────────┘
+└─────────────┘         └───────────────────────┘          └──────────────────┘
 ```
 
 | Module | Description | Port |
@@ -32,7 +32,16 @@ A distributed Tic-tac-toe game built with Spring Boot microservices, real-time W
 - React 18, TypeScript, Vite, STOMP/SockJS
 - JUnit 5, Mockito, AssertJ, WireMock, Awaitility
 
-## Quick Start
+## Quick Start (Docker)
+
+```bash
+docker compose up --build    # build and start all services
+docker compose down          # stop and remove containers
+```
+
+Open `http://localhost:3000`.
+
+## Quick Start (Local)
 
 ```bash
 # Terminal 1 — Game Engine
@@ -87,7 +96,6 @@ Subscribe to `/topic/sessions/{sessionId}` via STOMP at `ws://localhost:8082/ws`
 
 ## Future Improvements
 
-- **Containerization** — Dockerfiles with multi-stage builds, docker-compose for one-command startup
 - **OpenAPI / Swagger UI** — auto-generated API documentation from controller annotations
 - **CI/CD pipeline** — GitHub Actions for build, test, and coverage reporting
 - **Observability** — Spring Boot Actuator + Micrometer metrics (games played, win rate, response times)
